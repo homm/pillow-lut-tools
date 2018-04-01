@@ -4,4 +4,6 @@ python:
   - "3.5"
   - "3.6"
 script:
-  - ./setup.py nosetests
+  - ./setup.py nosetests --with-coverage --cover-package=pillow_lut
+after_success:
+  - coveralls
