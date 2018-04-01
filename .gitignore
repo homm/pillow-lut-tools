@@ -7,3 +7,4 @@
 # Distribution / packaging
 /dist/
 /*.egg-info/
+/.eggs/

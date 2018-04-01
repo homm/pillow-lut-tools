@@ -23,4 +23,5 @@ setup(
         "Programming Language :: Python :: Implementation :: PyPy",
     ],
     packages=['pillow_lut'],
+    setup_requires=['nose>=1.3']
 )
