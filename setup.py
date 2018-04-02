@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(
-    name='Pillow LUT tools',
+    name='pillow_lut',
     version='1.0',
     description='Lookup tables loading, manipulation and generation '
                 'for Pillow library',
