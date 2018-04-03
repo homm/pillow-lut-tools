@@ -11,16 +11,27 @@ is included as a dependency to simplify installation of another.
 
 ```python
 from PIL import Image
-from pillow_lut import load_cube_file
+from pillow_lut import load_hald_image
 
-lut = load_cube_file('../resources/insta - Juno.cube')
-im = Image.open('../resources/pineapple.jpeg')
-im = im.filter(lut)
-im.save('../resources/pineapple.juno.jpeg')
+lut = load_hald_image('./res/hald.6.hefe.png')
+im = Image.open('./res/pineapple.jpeg')
+im.filter(lut).save('./res/pineapple.hefe.jpeg')
 ```
 
-![Original](./res/pineapple.jpeg) ![Filtered](./res/pineapple.juno.jpeg)
+<img src="./res/pineapple.jpeg" width="400" alt="original"> <img src="./res/pineapple.hefe.jpeg" width="400" alt="filtered">
 
+
+```python
+from PIL import Image
+from pillow_lut import rgb_color_enhance
+
+lut = rgb_color_enhance(11, contrast=0.1, vibrance=0.5,
+                        gamma=1.5, brightness=0.05)
+im = Image.open('./res/pineapple.jpeg')
+im.filter(lut).save('./res/pineapple.enhance.jpeg')
+```
+
+<img src="./res/pineapple.jpeg" width="400" alt="original"> <img src="./res/pineapple.enhance.jpeg" width="400" alt="enhanced">
 
 
 [Pillow]: https://pillow.readthedocs.io/
