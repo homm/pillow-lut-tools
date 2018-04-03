@@ -1,8 +1,41 @@
 from __future__ import division, unicode_literals, absolute_import
 
 from pillow_lut import ImageFilter, rgb_color_enhance
+from pillow_lut import generators
 
 from . import PillowTestCase
+
+
+class TestUtils(PillowTestCase):
+    def test_linear_to_rgb_stability(self):
+        for x in range(0, 256):
+            x /= 255.0
+            self.assertAlmostEqual(
+                x, generators._linear_to_srgb(generators._srgb_to_linear(x)))
+            self.assertAlmostEqual(
+                x, generators._srgb_to_linear(generators._linear_to_srgb(x)))
+
+    def test_rgb_to_hsv_stability(self):
+        for r in range(0, 256):
+            rgb = (r / 255.0, 0.875, 0.8)
+            for left, right in zip(
+                rgb, generators._hsv_to_rgb(*generators._rgb_to_hsv(*rgb))
+            ):
+                self.assertAlmostEqual(left, right)
+
+        for g in range(0, 256):
+            rgb = (0.15, g / 255.0, 0.15)
+            for left, right in zip(
+                rgb, generators._hsv_to_rgb(*generators._rgb_to_hsv(*rgb))
+            ):
+                self.assertAlmostEqual(left, right)
+
+        for b in range(0, 256):
+            rgb = (0.15, 0.15, b / 255.0)
+            for left, right in zip(
+                rgb, generators._hsv_to_rgb(*generators._rgb_to_hsv(*rgb))
+            ):
+                self.assertAlmostEqual(left, right)
 
 
 class TestRgbColorEnhance(PillowTestCase):
