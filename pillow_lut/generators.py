@@ -3,21 +3,58 @@ from __future__ import division, unicode_literals, absolute_import, print_functi
 from PIL import ImageFilter
 
 
-def _to_linear(s):
+_ext = None
+
+
+def _srgb_to_linear(s):
     if s < 0.0404482362771082:
         return s / 12.92
     return pow((s + 0.055) / 1.055, 2.4)
 
 
-def _to_srgb(l):
+def _linear_to_srgb(l):
     if l < 0.00313066844250063:
         return l * 12.92
     return pow(l, 1 / 2.4) * 1.055 - 0.055
 
 
+def _rgb_to_hsv(r, g, b):
+    max_v = v = max(r, g, b)
+    min_v = min(r, g, b)
+    d = max_v - min_v
+    s = 0 if max_v == 0 else d / max_v
+    if max_v == min_v:
+        h = 0
+    elif max_v == r:
+        h = (g - b) / d + (6 if g < b else 0)
+    elif max_v == g:
+        h = (b - r) / d + 2
+    else:  # max_v == b
+        h = (r - g) / d + 4
+    h /= 6
+    return h, s, v
+
+
+def _hsv_to_rgb(h, s, v):
+    i = int(h * 6)
+    f = h * 6 - i
+    p = v * (1 - s)
+    q = v * (1 - f * s)
+    t = v * (1 - (1 - f) * s)
+    if i == 0: return v, t, p
+    if i == 1: return q, v, p
+    if i == 2: return p, v, t
+    if i == 3: return p, q, v
+    if i == 4: return t, p, v
+    return v, p, q  # if i == 5:
+
+
 def rgb_color_enhance(size,
                       brightness=0, contrast=0, saturation=0, vibrance=0,
-                      exposure=0, hue=0, sepia=0, gamma=1.0, linear=False):
+                      # exposure=0,
+                      hue=0,
+                      # sepia=0,
+                      gamma=1.0, linear=False):
     """Generates 3D color lookup table based on given values of basic
     color settings.
 
@@ -36,58 +73,92 @@ def rgb_color_enhance(size,
                    Most arguments more sensitive in this mode.
     """
 
-    if not -1.0 <= brightness <= 1.0:
-        raise ValueError()
-    if not -1.0 <= contrast <= 1.0:
-        raise ValueError()
-    if not -1.0 <= saturation <= 1.0:
-        raise ValueError()
-    if not -1.0 <= vibrance <= 1.0:
-        raise ValueError()
-    if not 0 <= gamma <= 10:
-        raise ValueError()
+    if brightness:
+        if not isinstance(brightness, (tuple, list)):
+            brightness = (brightness, brightness, brightness)
+        if any(not -1.0 <= x <= 1.0 for x in brightness):
+            raise ValueError("Brightness should be from -1.0 to 1.0")
 
-    contrast = (contrast + 1)**2
+    if contrast:
+        if not isinstance(contrast, (tuple, list)):
+            contrast = (contrast, contrast, contrast)
+        if any(not -1.0 <= x <= 1.0 for x in contrast):
+            raise ValueError("Contrast should be from -1.0 to 1.0")
+        contrast = [(x + 1)**2 for x in contrast]
+
+    if saturation:
+        if not isinstance(saturation, (tuple, list)):
+            saturation = (saturation, saturation, saturation)
+        if any(not -1.0 <= x <= 1.0 for x in saturation):
+            raise ValueError("Saturation should be from -1.0 to 1.0")
+
+    if vibrance:
+        if not isinstance(vibrance, (tuple, list)):
+            vibrance = (vibrance, vibrance, vibrance)
+        if any(not -1.0 <= x <= 1.0 for x in vibrance):
+            raise ValueError("Vibrance should be from -1.0 to 1.0")
+
+    if not 0 <= hue <= 1.0:
+        raise ValueError("Hue should be from 0.0 to 1.0")
+
+    if gamma != 1:
+        if not isinstance(gamma, (tuple, list)):
+            gamma = (gamma, gamma, gamma)
+        if any(not 0 <= x <= 10 for x in gamma):
+            raise ValueError("Gamma should be from 0.0 to 10.0")
+
+    if _ext:
+        size = ImageFilter.Color3DLUT._check_size(size)
+        table = _ext.generate_rgb_color_enhance(
+            size,
+            brightness or None, contrast or None, saturation or None,
+            vibrance or None, None, hue or None, None,
+            gamma if gamma != 1 else None, linear, linear,
+        )
+        return ImageFilter.Color3DLUT(size, table)
 
     def generate(r, g, b):
         if linear:
-            r = _to_linear(r)
-            g = _to_linear(g)
-            b = _to_linear(b)
+            r = _srgb_to_linear(r)
+            g = _srgb_to_linear(g)
+            b = _srgb_to_linear(b)
 
         if brightness:
-            r += brightness
-            g += brightness
-            b += brightness
+            r += brightness[0]
+            g += brightness[1]
+            b += brightness[2]
 
-        if contrast != 1:
-            r = (r - 0.5) * contrast + 0.5
-            g = (g - 0.5) * contrast + 0.5
-            b = (b - 0.5) * contrast + 0.5
+        if contrast:
+            r = (r - 0.5) * contrast[0] + 0.5
+            g = (g - 0.5) * contrast[1] + 0.5
+            b = (b - 0.5) * contrast[2] + 0.5
 
         if saturation:
             max_v = max(r, g, b)
-            r += (r - max_v) * saturation
-            g += (g - max_v) * saturation
-            b += (b - max_v) * saturation
+            r += (r - max_v) * saturation[0]
+            g += (g - max_v) * saturation[1]
+            b += (b - max_v) * saturation[2]
 
         if vibrance:
             max_v = max(r, g, b)
             avg_v = (r + g + b) / 3
-            amt = abs(max_v - avg_v) * 2 * vibrance
-            r += (r - max_v) * amt
-            g += (g - max_v) * amt
-            b += (b - max_v) * amt
+            r += (r - max_v) * (max_v - avg_v) * vibrance[0]
+            g += (g - max_v) * (max_v - avg_v) * vibrance[1]
+            b += (b - max_v) * (max_v - avg_v) * vibrance[2]
+
+        if hue:
+            h, s, v = _rgb_to_hsv(r, g, b)
+            r, g, b = _hsv_to_rgb((h + hue) % 1, s, v)
 
         if gamma != 1:
-            r = max(0, r)**gamma
-            g = max(0, g)**gamma
-            b = max(0, b)**gamma
+            r = max(0, r)**gamma[0]
+            g = max(0, g)**gamma[1]
+            b = max(0, b)**gamma[2]
 
         if linear:
-            r = _to_srgb(r)
-            g = _to_srgb(g)
-            b = _to_srgb(b)
+            r = _linear_to_srgb(r)
+            g = _linear_to_srgb(g)
+            b = _linear_to_srgb(b)
 
         return r, g, b
 
