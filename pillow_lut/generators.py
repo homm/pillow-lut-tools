@@ -1,4 +1,4 @@
-from __future__ import division, unicode_literals, absolute_import, print_function
+from __future__ import division, unicode_literals, absolute_import
 
 from PIL import ImageFilter
 
@@ -107,15 +107,15 @@ def rgb_color_enhance(size,
         if any(not 0 <= x <= 10 for x in gamma):
             raise ValueError("Gamma should be from 0.0 to 10.0")
 
-    if _ext:
-        size = ImageFilter.Color3DLUT._check_size(size)
-        table = _ext.generate_rgb_color_enhance(
-            size,
-            brightness or None, contrast or None, saturation or None,
-            vibrance or None, None, hue or None, None,
-            gamma if gamma != 1 else None, linear, linear,
-        )
-        return ImageFilter.Color3DLUT(size, table)
+    # if _ext:
+    #     size = ImageFilter.Color3DLUT._check_size(size)
+    #     table = _ext.generate_rgb_color_enhance(
+    #         size,
+    #         brightness or None, contrast or None, saturation or None,
+    #         vibrance or None, None, hue or None, None,
+    #         gamma if gamma != 1 else None, linear, linear,
+    #     )
+    #     return ImageFilter.Color3DLUT(size, table)
 
     def generate(r, g, b):
         if linear:
