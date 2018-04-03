@@ -5,7 +5,7 @@ from pillow_lut import ImageFilter, rgb_color_enhance
 from . import PillowTestCase
 
 
-class TestRgbColorEngance(PillowTestCase):
+class TestRgbColorEnhance(PillowTestCase):
     unit = ImageFilter.Color3DLUT.generate(5, lambda a, b, c: (a, b, c))
 
     def test_wrong_args(self):
@@ -56,6 +56,7 @@ class TestRgbColorEngance(PillowTestCase):
 
     def test_correct_args(self):
         lut = rgb_color_enhance(5)
+        self.assertTrue(isinstance(lut, ImageFilter.Color3DLUT))
         self.assertEqual(lut.table, self.unit.table)
 
         lut = rgb_color_enhance(5, brightness=0.1)
@@ -110,10 +111,14 @@ class TestRgbColorEngance(PillowTestCase):
 
     def test_linear_space(self):
         lut = rgb_color_enhance(5, linear=True)
+        self.assertTrue(isinstance(lut, ImageFilter.Color3DLUT))
         for left, right in zip(lut.table, self.unit.table):
             self.assertAlmostEqual(left, right)
 
     def test_all_args(self):
-        lut = rgb_color_enhance(5, brightness=0.1, contrast=0.1, saturation=0.1,
-                                vibrance=0.1, hue=0.1, gamma=1.1, linear=True)
+        lut = rgb_color_enhance(
+            5, brightness=0.1, contrast=0.1, saturation=0.1,
+            vibrance=0.1, hue=0.1, gamma=1.1, linear=True,
+        )
+        self.assertTrue(isinstance(lut, ImageFilter.Color3DLUT))
         self.assertNotEqual(lut.table, self.unit.table)

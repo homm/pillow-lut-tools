@@ -1,4 +1,24 @@
 import unittest
+from os.path import join, abspath, dirname
+from contextlib import contextmanager
+
+
+@contextmanager
+def disable_numpy(module):
+    assert module.numpy, "numpy is not installed"
+
+    old_numpy = module.numpy
+    module.numpy = None
+
+    try:
+        yield
+    finally:
+        module.numpy = old_numpy
+
+
+def resource(*x):
+    return abspath(join(abspath(dirname(__file__)), *x))
+
 
 class PillowTestCase(unittest.TestCase):
     def assert_image_equal(self, a, b, msg=None):

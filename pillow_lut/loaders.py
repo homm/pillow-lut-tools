@@ -2,8 +2,13 @@ from __future__ import division, unicode_literals, absolute_import
 
 from itertools import chain
 
-from . import ImageFilter
+from . import Image, ImageFilter, ImageMath
 from .utils import isPath
+
+try:
+    import numpy
+except ImportError:
+    numpy = None
 
 
 def load_cube_file(lines, target_mode=None, cls=ImageFilter.Color3DLUT):
@@ -38,7 +43,7 @@ def load_cube_file(lines, target_mode=None, cls=ImageFilter.Color3DLUT):
             if line.startswith('CHANNELS '):
                 channels = int(line.split()[1])
             if line.startswith('LUT_1D_SIZE '):
-                raise ValueError("1D LUT cube files aren't supported.")
+                raise ValueError("1D LUT cube files aren't supported")
 
             try:
                 float(line.partition(' ')[0])
@@ -72,3 +77,39 @@ def load_cube_file(lines, target_mode=None, cls=ImageFilter.Color3DLUT):
     if name is not None:
         instance.name = name
     return instance
+
+
+def load_hald_image(image, target_mode=None, cls=ImageFilter.Color3DLUT):
+    """Loads 3D lookup table from Hald image (normally .png or .tiff files).
+
+    :param image: Pillow RGB image or path to the file.
+    :param target_mode: Image mode which should be after color transformation.
+                        The default is None, which means mode doesn't change.
+    :param cls: A class which handles the parsed file.
+                Default is ``ImageFilter.Color3DLUT``.
+    """
+    if not isinstance(image, Image.Image):
+        image = Image.open(image)
+
+    if image.size[0] != image.size[1]:
+        raise ValueError("Hald image should be a square")
+
+    channels = len(image.getbands())
+
+    for i in range(2, 9):
+        if image.size[0] == i**3:
+            size = i**2
+            break
+    else:
+        raise ValueError("Can't detect hald size")
+
+    if numpy:
+        table = numpy.array(image).reshape(size**3 * channels)
+        table = table.astype(numpy.float32) / 255.0
+    else:
+        table = zip(*[
+            ImageMath.eval("a/255.0", a=im.convert('F')).im
+            for im in image.split()
+        ])
+
+    return cls(size, table, target_mode=target_mode)

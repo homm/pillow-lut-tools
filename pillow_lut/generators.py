@@ -54,7 +54,7 @@ def rgb_color_enhance(size,
                       # exposure=0,
                       hue=0,
                       # sepia=0,
-                      gamma=1.0, linear=False):
+                      gamma=1.0, linear=False, cls=ImageFilter.Color3DLUT):
     """Generates 3D color lookup table based on given values of basic
     color settings.
 
@@ -108,14 +108,14 @@ def rgb_color_enhance(size,
             raise ValueError("Gamma should be from 0.0 to 10.0")
 
     # if _ext:
-    #     size = ImageFilter.Color3DLUT._check_size(size)
+    #     size = cls._check_size(size)
     #     table = _ext.generate_rgb_color_enhance(
     #         size,
     #         brightness or None, contrast or None, saturation or None,
     #         vibrance or None, None, hue or None, None,
     #         gamma if gamma != 1 else None, linear, linear,
     #     )
-    #     return ImageFilter.Color3DLUT(size, table)
+    #     return cls(size, table)
 
     def generate(r, g, b):
         if linear:
@@ -162,4 +162,4 @@ def rgb_color_enhance(size,
 
         return r, g, b
 
-    return ImageFilter.Color3DLUT.generate(size, generate)
+    return cls.generate(size, generate)
