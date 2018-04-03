@@ -8,7 +8,7 @@ from pillow_lut import ImageFilter, load_cube_file
 from . import PillowTestCase
 
 
-class TestLoadFromCubeFile(PillowTestCase):
+class TestLoadCubeFile(PillowTestCase):
     def test_minimal(self):
         lut = load_cube_file([
             "LUT_3D_SIZE 2",

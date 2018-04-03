@@ -11,3 +11,4 @@ if not hasattr(ImageFilter, "Color3DLUT"):
                       "Please install latest Pillow or Pillow-SIMD package.")
 
 from .loaders import load_cube_file
+from .generators import rgb_color_enhance

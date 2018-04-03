@@ -7,7 +7,7 @@ from .utils import isPath
 
 
 def load_cube_file(lines, target_mode=None, cls=ImageFilter.Color3DLUT):
-    """Loads 3D LUT from .cube file format.
+    """Loads 3D lookup table from .cube file format.
 
     :param lines: Filename or iterable list of strings with file content.
     :param target_mode: Image mode which should be after color transformation.
