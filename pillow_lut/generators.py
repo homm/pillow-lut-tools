@@ -24,6 +24,15 @@ def _linear_to_srgb(l):
     return pow(l, 1 / 2.4) * 1.055 - 0.055
 
 
+def _srgb_to_linear_numpy(s):
+    choicelist = [s / 12.92, ((s + 0.055) / 1.055) ** 2.4]
+    return numpy.select([s < 0.0404482362771082, True], choicelist)
+
+def _linear_to_srgb_numpy(l):
+    choicelist = [l * 12.92, (l ** (1 / 2.4)) * 1.055 - 0.055]
+    return numpy.select([l < 0.00313066844250063, True], choicelist)
+
+
 def _rgb_to_hsv(r, g, b):
     max_v = v = max(r, g, b)
     min_v = min(r, g, b)
@@ -123,13 +132,18 @@ def rgb_color_enhance(size,
     #     )
     #     return cls(size, table)
 
-    if numpy and not linear and not hue:
+    if numpy and not hue:
         size = cls._check_size(size)
         b, g, r = numpy.mgrid[
             0 : 1 : size[2]*1j,
             0 : 1 : size[1]*1j,
             0 : 1 : size[0]*1j
         ].astype(numpy.float32)
+
+        if linear:
+            r = _srgb_to_linear_numpy(r)
+            g = _srgb_to_linear_numpy(g)
+            b = _srgb_to_linear_numpy(b)
 
         if brightness:
             r += brightness[0]
@@ -158,6 +172,11 @@ def rgb_color_enhance(size,
             r = r.clip(0) ** gamma[0]
             g = g.clip(0) ** gamma[1]
             b = b.clip(0) ** gamma[2]
+
+        if linear:
+            r = _linear_to_srgb_numpy(r)
+            g = _linear_to_srgb_numpy(g)
+            b = _linear_to_srgb_numpy(b)
 
         table = numpy.array((b, g, r)).T
         return cls(size, table.reshape(size[0] * size[1] * size[2] * 3))
