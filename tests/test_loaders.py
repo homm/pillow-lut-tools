@@ -144,16 +144,18 @@ class TestLoadHaldImage(PillowTestCase):
 
         lut_numpy = load_hald_image(image)
         self.assertEqual(tuple(lut_numpy.size), tuple(lut_unit.size))
+        self.assertNotEqual(lut_numpy.table, lut_unit.table)
         for left, right in zip(lut_numpy.table, lut_unit.table):
             self.assertAlmostEqual(left, right, 7)
 
         with disable_numpy(loaders):
             lut_pillow = load_hald_image(image)
         self.assertEqual(tuple(lut_pillow.size), tuple(lut_unit.size))
+        self.assertNotEqual(lut_pillow.table, lut_unit.table)
         for left, right in zip(lut_pillow.table, lut_unit.table):
             self.assertAlmostEqual(left, right, 7)
 
         for left, right in zip(lut_pillow.table, lut_numpy.table):
-            self.assertAlmostEqual(left, right, 12)
+            self.assertAlmostEqual(left, right, 10)
 
 

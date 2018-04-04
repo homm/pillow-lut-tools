@@ -3,7 +3,13 @@ from __future__ import division, unicode_literals, absolute_import
 from PIL import ImageFilter
 
 
-_ext = None
+try:
+    from . import _ext
+except ImportError: _ext = None
+
+try:
+    import numpy
+except ImportError: numpy = None
 
 
 def _srgb_to_linear(s):
@@ -16,6 +22,15 @@ def _linear_to_srgb(l):
     if l < 0.00313066844250063:
         return l * 12.92
     return pow(l, 1 / 2.4) * 1.055 - 0.055
+
+
+def _srgb_to_linear_numpy(s):
+    choicelist = [s / 12.92, ((s + 0.055) / 1.055) ** 2.4]
+    return numpy.select([s < 0.0404482362771082, True], choicelist)
+
+def _linear_to_srgb_numpy(l):
+    choicelist = [l * 12.92, (l ** (1 / 2.4)) * 1.055 - 0.055]
+    return numpy.select([l < 0.00313066844250063, True], choicelist)
 
 
 def _rgb_to_hsv(r, g, b):
@@ -116,6 +131,55 @@ def rgb_color_enhance(size,
     #         gamma if gamma != 1 else None, linear, linear,
     #     )
     #     return cls(size, table)
+
+    if numpy and not hue:
+        size = cls._check_size(size)
+        b, g, r = numpy.mgrid[
+            0 : 1 : size[2]*1j,
+            0 : 1 : size[1]*1j,
+            0 : 1 : size[0]*1j
+        ].astype(numpy.float32)
+
+        if linear:
+            r = _srgb_to_linear_numpy(r)
+            g = _srgb_to_linear_numpy(g)
+            b = _srgb_to_linear_numpy(b)
+
+        if brightness:
+            r += brightness[0]
+            g += brightness[1]
+            b += brightness[2]
+
+        if contrast:
+            r = (r - 0.5) * contrast[0] + 0.5
+            g = (g - 0.5) * contrast[1] + 0.5
+            b = (b - 0.5) * contrast[2] + 0.5
+
+        if saturation:
+            max_v = numpy.maximum.reduce([r, g, b])
+            r += (r - max_v) * saturation[0]
+            g += (g - max_v) * saturation[1]
+            b += (b - max_v) * saturation[2]
+
+        if vibrance:
+            max_v = numpy.maximum.reduce([r, g, b])
+            avg_v = (r + g + b) / 3
+            r += (r - max_v) * (max_v - avg_v) * vibrance[0]
+            g += (g - max_v) * (max_v - avg_v) * vibrance[1]
+            b += (b - max_v) * (max_v - avg_v) * vibrance[2]
+
+        if gamma != 1:
+            r = r.clip(0) ** gamma[0]
+            g = g.clip(0) ** gamma[1]
+            b = b.clip(0) ** gamma[2]
+
+        if linear:
+            r = _linear_to_srgb_numpy(r)
+            g = _linear_to_srgb_numpy(g)
+            b = _linear_to_srgb_numpy(b)
+
+        table = numpy.stack((r, g, b), axis=-1)
+        return cls(size, table.reshape(size[0] * size[1] * size[2] * 3))
 
     def generate(r, g, b):
         if linear:
