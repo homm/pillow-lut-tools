@@ -163,10 +163,23 @@ class TestRgbColorEnhance(PillowTestCase):
 
         lut_numpy = rgb_color_enhance((4, 5, 6))
         self.assertEqual(lut_numpy.size, lut_ref.size)
+        self.assertNotEqual(lut_numpy.table, lut_ref.table)
         for left, right in zip(lut_numpy.table, lut_ref.table):
-            self.assertAlmostEqual(left, right)
+            self.assertAlmostEqual(left, right, 7)
 
         with disable_numpy(generators):
             lut_native = rgb_color_enhance((4, 5, 6))
         self.assertEqual(lut_native.size, lut_ref.size)
         self.assertEqual(lut_native.table, lut_ref.table)
+
+    def test_correctness(self):
+        lut_numpy = rgb_color_enhance(15, brightness=0.1, contrast=0.1,
+            saturation=0.1, vibrance=0.1, gamma=1.1, linear=True)
+        with disable_numpy(generators):
+            lut_native = rgb_color_enhance(15, brightness=0.1, contrast=0.1,
+                saturation=0.1, vibrance=0.1, gamma=1.1, linear=True)
+
+        self.assertEqual(lut_numpy.size, lut_native.size)
+        self.assertNotEqual(lut_numpy.table, lut_native.table)
+        for left, right in zip(lut_numpy.table, lut_native.table):
+            self.assertAlmostEqual(left, right, 6)
