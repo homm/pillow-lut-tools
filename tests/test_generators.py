@@ -143,10 +143,11 @@ class TestRgbColorEnhance(PillowTestCase):
         self.assertNotEqual(lut.table, self.unit.table)
 
     def test_linear_space(self):
-        lut = rgb_color_enhance(5, linear=True)
+        unit = rgb_color_enhance(13)
+        lut = rgb_color_enhance(13, linear=True)
         self.assertTrue(isinstance(lut, ImageFilter.Color3DLUT))
-        for left, right in zip(lut.table, self.unit.table):
-            self.assertAlmostEqual(left, right)
+        for left, right in zip(lut.table, unit.table):
+            self.assertAlmostEqual(left, right, 6)
 
     def test_all_args(self):
         lut = rgb_color_enhance(
