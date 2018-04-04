@@ -25,8 +25,7 @@ im.filter(lut).save('./res/pineapple.hefe.jpeg')
 from PIL import Image
 from pillow_lut import rgb_color_enhance
 
-lut = rgb_color_enhance(11, contrast=0.1, vibrance=0.5,
-                        gamma=1.5, brightness=0.05)
+lut = rgb_color_enhance(11, contrast=0.1, vibrance=0.5, gamma=1.3, brightness=0.05)
 im = Image.open('./res/pineapple.jpeg')
 im.filter(lut).save('./res/pineapple.enhance.jpeg')
 ```

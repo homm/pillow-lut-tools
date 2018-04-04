@@ -3,7 +3,13 @@ from __future__ import division, unicode_literals, absolute_import
 from PIL import ImageFilter
 
 
-_ext = None
+try:
+    from . import _ext
+except ImportError: _ext = None
+
+try:
+    import numpy
+except ImportError: numpy = None
 
 
 def _srgb_to_linear(s):
@@ -116,6 +122,45 @@ def rgb_color_enhance(size,
     #         gamma if gamma != 1 else None, linear, linear,
     #     )
     #     return cls(size, table)
+
+    if numpy and not linear and not hue:
+        size = cls._check_size(size)
+        b, g, r = numpy.mgrid[
+            0 : 1 : size[2]*1j,
+            0 : 1 : size[1]*1j,
+            0 : 1 : size[0]*1j
+        ].astype(numpy.float32)
+
+        if brightness:
+            r += brightness[0]
+            g += brightness[1]
+            b += brightness[2]
+
+        if contrast:
+            r = (r - 0.5) * contrast[0] + 0.5
+            g = (g - 0.5) * contrast[1] + 0.5
+            b = (b - 0.5) * contrast[2] + 0.5
+
+        if saturation:
+            max_v = numpy.maximum.reduce([r, g, b])
+            r += (r - max_v) * saturation[0]
+            g += (g - max_v) * saturation[1]
+            b += (b - max_v) * saturation[2]
+
+        if vibrance:
+            max_v = numpy.maximum.reduce([r, g, b])
+            avg_v = (r + g + b) / 3
+            r += (r - max_v) * (max_v - avg_v) * vibrance[0]
+            g += (g - max_v) * (max_v - avg_v) * vibrance[1]
+            b += (b - max_v) * (max_v - avg_v) * vibrance[2]
+
+        if gamma != 1:
+            r = r.clip(0) ** gamma[0]
+            g = g.clip(0) ** gamma[1]
+            b = b.clip(0) ** gamma[2]
+
+        table = numpy.array((b, g, r)).T
+        return cls(size, table.reshape(size[0] * size[1] * size[2] * 3))
 
     def generate(r, g, b):
         if linear:
