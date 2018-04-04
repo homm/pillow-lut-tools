@@ -178,7 +178,7 @@ def rgb_color_enhance(size,
             g = _linear_to_srgb_numpy(g)
             b = _linear_to_srgb_numpy(b)
 
-        table = numpy.array((b, g, r)).T
+        table = numpy.stack((r, g, b), axis=-1)
         return cls(size, table.reshape(size[0] * size[1] * size[2] * 3))
 
     def generate(r, g, b):

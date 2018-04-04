@@ -3,7 +3,7 @@ from __future__ import division, unicode_literals, absolute_import
 from pillow_lut import ImageFilter, rgb_color_enhance
 from pillow_lut import generators
 
-from . import PillowTestCase
+from . import PillowTestCase, disable_numpy
 
 
 class TestUtils(PillowTestCase):
@@ -156,3 +156,17 @@ class TestRgbColorEnhance(PillowTestCase):
         )
         self.assertTrue(isinstance(lut, ImageFilter.Color3DLUT))
         self.assertNotEqual(lut.table, self.unit.table)
+
+    def test_different_dimensions(self):
+        lut_ref = ImageFilter.Color3DLUT.generate((4, 5, 6),
+                                                  lambda a, b, c: (a, b, c))
+
+        lut_numpy = rgb_color_enhance((4, 5, 6))
+        self.assertEqual(lut_numpy.size, lut_ref.size)
+        for left, right in zip(lut_numpy.table, lut_ref.table):
+            self.assertAlmostEqual(left, right)
+
+        with disable_numpy(generators):
+            lut_native = rgb_color_enhance((4, 5, 6))
+        self.assertEqual(lut_native.size, lut_ref.size)
+        self.assertEqual(lut_native.table, lut_ref.table)
