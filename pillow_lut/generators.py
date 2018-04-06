@@ -230,6 +230,13 @@ def rgb_color_enhance(size,
 
 
 def identity_table(size, target_mode=None, cls=ImageFilter.Color3DLUT):
+    """Returns noop lookup table with linear distributed values.
+
+    :param size: Size of the table. From 2 to 65.
+    :param target_mode: A mode for the result image. Should have not less
+                        than ``channels`` channels. Default is ``None``,
+                        which means that mode wouldn't be changed.
+    """
     if numpy:
         size = cls._check_size(size)
         b, g, r = numpy.mgrid[
