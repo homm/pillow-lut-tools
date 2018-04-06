@@ -1,5 +1,7 @@
 from __future__ import division, unicode_literals, absolute_import
 
+import warnings
+
 from . import Image, ImageFilter
 
 
@@ -80,20 +82,32 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
         raise ValueError("Can transform only 3-channel cubes")
     if interp != Image.LINEAR:
         raise ValueError("Only linear interpolation is supported")
-    size1D, size2D, size3D = source.size
+
+    if target_size:
+        size1D, size2D, size3D = cls._check_size(target_size)
+    else:
+        size1D, size2D, size3D = source.size
+        index = 0
+
+    if size1D * size2D * size3D >= 1000:
+        warnings.warn("You are using not accelerated python version "
+                      "of transform_lut, which could be fairly slow.")
 
     table = []
-    index = 0
     for b in range(size3D):
         for g in range(size2D):
             for r in range(size1D):
-                table.append(point_lut_linear(lut, (
-                    source.table[index + 0],
-                    source.table[index + 1],
-                    source.table[index + 2],
-                ), interp))
-                index += 3
+                if target_size:
+                    point = point_lut_linear(source, (r / float(size1D-1),
+                                                      g / float(size2D-1),
+                                                      b / float(size3D-1)))
+                else:
+                    point = (source.table[index + 0],
+                             source.table[index + 1],
+                             source.table[index + 2])
+                    index += 3
+                table.append(point_lut_linear(lut, point))
 
-    return cls(source.size, table, channels=target.channels,
-               target_mode=target.mode or source.mode)
+    return cls((size1D, size2D, size3D), table,
+               channels=lut.channels, target_mode=lut.mode or source.mode)
 
