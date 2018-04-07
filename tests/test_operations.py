@@ -73,7 +73,7 @@ class TestTransformLut(PillowTestCase):
             result = transform_lut(lut, identity_table(3))
 
         with self.assertRaisesRegexp(ValueError, "linear interpolation"):
-            result = transform_lut(identity_table(3), identity_table(3),
+            result = transform_lut(identity_table(4), identity_table(4),
                 interp=Image.CUBIC)
 
     def test_correct_args(self):
