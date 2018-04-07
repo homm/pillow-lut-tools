@@ -106,18 +106,35 @@ class TestTransformLut(PillowTestCase):
             self.assertIn('fairly slow', "{}".format(w[0].message))
 
     def test_identity(self):
-        identity = identity_table(11)
-        lut = ImageFilter.Color3DLUT.generate(9,
+        identity11 = identity_table(11)
+        lut9 = ImageFilter.Color3DLUT.generate(9,
             lambda r, g, b: (r*r, g*g, b*b))
-        lut7 = ImageFilter.Color3DLUT.generate(11,
+        lut11 = ImageFilter.Color3DLUT.generate(11,
             lambda r, g, b: (r*r, g*g, b*b))
 
-        result = transform_lut(lut, identity)
-        self.assertEqual(result.size, lut.size)
-        for left, right in zip(result.table, lut.table):
+        result = transform_lut(lut9, identity11)
+        self.assertEqual(result.size, lut9.size)
+        for left, right in zip(result.table, lut9.table):
             self.assertAlmostEqual(left, right)
 
-        result = transform_lut(identity, lut)
-        self.assertEqual(result.size, identity.size)
-        for left, right in zip(result.table, lut7.table):
+        result = transform_lut(identity11, lut9)
+        self.assertEqual(result.size, identity11.size)
+        for left, right in zip(result.table, lut11.table):
             self.assertAlmostEqual(left, right, 2)
+
+    def test_correctness(self):
+        lut_in = ImageFilter.Color3DLUT.generate(11,
+            lambda r, g, b: (r**1.2, g**1.2, b**1.2))
+        lut_out = ImageFilter.Color3DLUT.generate(11,
+            lambda r, g, b: (r**(1/1.2), g**(1/1.2), b**(1/1.2)))
+        identity = identity_table(11)
+
+        result = transform_lut(lut_in, lut_out)
+        self.assertEqual(result.size, lut_in.size)
+        for left, right in zip(result.table, identity.table):
+            self.assertAlmostEqual(left, right, delta=0.01)
+
+        result = transform_lut(lut_out, lut_in)
+        self.assertEqual(result.size, lut_out.size)
+        for left, right in zip(result.table, identity.table):
+            self.assertAlmostEqual(left, right, delta=0.01)
