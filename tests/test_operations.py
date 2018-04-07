@@ -106,8 +106,18 @@ class TestTransformLut(PillowTestCase):
             self.assertIn('fairly slow', "{}".format(w[0].message))
 
     def test_identity(self):
-        lut = ImageFilter.Color3DLUT.generate(5,
+        identity = identity_table(11)
+        lut = ImageFilter.Color3DLUT.generate(9,
             lambda r, g, b: (r*r, g*g, b*b))
-        result = transform_lut(lut, identity_table(3))
+        lut7 = ImageFilter.Color3DLUT.generate(11,
+            lambda r, g, b: (r*r, g*g, b*b))
+
+        result = transform_lut(lut, identity)
         self.assertEqual(result.size, lut.size)
-        self.assertEqual(result.table, lut.table)
+        for left, right in zip(result.table, lut.table):
+            self.assertAlmostEqual(left, right)
+
+        result = transform_lut(identity, lut)
+        self.assertEqual(result.size, identity.size)
+        for left, right in zip(result.table, lut7.table):
+            self.assertAlmostEqual(left, right, 2)

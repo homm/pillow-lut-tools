@@ -5,18 +5,25 @@ import warnings
 from . import Image, ImageFilter
 
 
-def _interpolate_linear(d, v0, v1):
+def _inter_linear(d, v0, v1):
     return v0 + (v1 - v0) * d
 
 
-def _interpolate_linear_vector(d, v0, v1):
+def _inter_linear_table(d, c, table, i0, i1):
     return [
-        _interpolate_linear(d, v0, v1)
-        for v0, v1 in zip(v0, v1)
+        _inter_linear(d, table[i0+i], table[i1+i])
+        for i in range(c)
     ]
 
 
-def _interpolate_cubic(d, v0, v1, v2, v3):
+def _inter_linear_vector(d, c, v0, v1):
+    return [
+        _inter_linear(d, v0[i], v1[i])
+        for i in range(c)
+    ]
+
+
+def _inter_cubic(d, v0, v1, v2, v3):
     # https://en.wikipedia.org/wiki/Bicubic_interpolation#Bicubic_convolution_algorithm
     def filter_1l(x):
         a = -0.5
@@ -32,10 +39,16 @@ def _interpolate_cubic(d, v0, v1, v2, v3):
             v3 * filter_2l(2-d))
 
 
-def _interpolate_cubic_vector(d, v0, v1, v2, v3):
+def _inter_cubic_table(d, c, table, i0, i1, i2, i3):
     return [
-        _interpolate_cubic(d, v0, v1, v2, v3)
-        for v0, v1, v2, v3 in zip(v0, v1, v2, v3)
+        _inter_cubic(d, table[i0+i], table[i1+i], table[i2+i], table[i3+i])
+        for i in range(c)
+    ]
+
+def _inter_cubic_vector(d, c, v0, v1, v2, v3):
+    return [
+        _inter_cubic(d, v0[i], v1[i], v2[i], v3[i])
+        for i in range(c)
     ]
 
 
@@ -56,22 +69,18 @@ def point_lut_linear(lut, point):
     shift3D = index3D - idx3D
     idx = idx1D*3 + idx2D * s1Dc + idx3D * s12Dc
 
-    return _interpolate_linear_vector(shift3D,
-        _interpolate_linear_vector(shift2D,
-            _interpolate_linear_vector(shift1D,
-                lut.table[idx + 0:idx + c],
-                lut.table[idx + c:idx + c + c]),
-            _interpolate_linear_vector(shift1D,
-                lut.table[idx + s1Dc + 0:idx + s1Dc + c],
-                lut.table[idx + s1Dc + c:idx + s1Dc + c + c])
+    return _inter_linear_vector(shift3D, c,
+        _inter_linear_vector(shift2D, c,
+            _inter_linear_table(shift1D, c, lut.table,
+                idx + 0, idx + c),
+            _inter_linear_table(shift1D, c, lut.table,
+                idx + s1Dc + 0, idx + s1Dc + c),
         ),
-        _interpolate_linear_vector(shift2D,
-            _interpolate_linear_vector(shift1D,
-                lut.table[idx + s12Dc + 0:idx + s12Dc + c],
-                lut.table[idx + s12Dc + c:idx + s12Dc + c + c]),
-            _interpolate_linear_vector(shift1D,
-                lut.table[idx + s12Dc + s1Dc + 0:idx + s12Dc + s1Dc + c],
-                lut.table[idx + s12Dc + s1Dc + c:idx + s12Dc + s1Dc + c + c])
+        _inter_linear_vector(shift2D, c,
+            _inter_linear_table(shift1D, c, lut.table,
+                idx + s12Dc + 0, idx + s12Dc + c),
+            _inter_linear_table(shift1D, c, lut.table,
+                idx + s12Dc + s1Dc + 0, idx + s12Dc + s1Dc + c),
         )
     )
 
