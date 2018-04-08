@@ -179,7 +179,7 @@ def rgb_color_enhance(size,
             b = _linear_to_srgb_numpy(b)
 
         table = numpy.stack((r, g, b), axis=-1)
-        return cls(size, table.reshape(size[0] * size[1] * size[2] * 3))
+        return cls(size, table.reshape(table.size))
 
     def generate(r, g, b):
         if linear:
@@ -246,8 +246,7 @@ def identity_table(size, target_mode=None, cls=ImageFilter.Color3DLUT):
         ].astype(numpy.float32)
 
         table = numpy.stack((r, g, b), axis=-1)
-        return cls(size, table.reshape(size[0] * size[1] * size[2] * 3),
-                   target_mode=target_mode)
+        return cls(size, table.reshape(table.size), target_mode=target_mode)
 
     return cls.generate(size, lambda r, g, b: (r, g, b),
                         target_mode=target_mode)

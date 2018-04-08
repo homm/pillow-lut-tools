@@ -163,7 +163,8 @@ class TestTransformLut(PillowTestCase):
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
-            transform_lut(identity_table(10), identity_table(5))
+            with disable_numpy(operations):
+                transform_lut(identity_table(10), identity_table(5))
             self.assertEqual(len(w), 1)
             self.assertIn('fairly slow', "{}".format(w[0].message))
 
