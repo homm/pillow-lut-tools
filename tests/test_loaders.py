@@ -3,7 +3,8 @@ from __future__ import division, unicode_literals, absolute_import
 import os
 from tempfile import NamedTemporaryFile
 
-from pillow_lut import Image, ImageFilter, load_cube_file, load_hald_image
+from pillow_lut import (Image, ImageFilter, load_cube_file,
+                        load_hald_image, identity_table)
 from pillow_lut import loaders
 
 from . import PillowTestCase, resource, disable_numpy
@@ -138,24 +139,14 @@ class TestLoadHaldImage(PillowTestCase):
         self.assertEqual(lut.mode, None)
 
     def test_correctness(self):
-        lut_unit = ImageFilter.Color3DLUT.generate(
-            16, lambda a, b, c: (a, b, c))
+        identity = identity_table(16)
         image = Image.open(resource('files', 'hald.4.png'))
 
         lut_numpy = load_hald_image(image)
-        self.assertEqual(tuple(lut_numpy.size), tuple(lut_unit.size))
-        self.assertNotEqual(lut_numpy.table, lut_unit.table)
-        for left, right in zip(lut_numpy.table, lut_unit.table):
-            self.assertAlmostEqual(left, right, 7)
+        self.assertEqual(tuple(lut_numpy.size), tuple(identity.size))
+        self.assertEqual(lut_numpy.table, identity.table)
 
         with disable_numpy(loaders):
             lut_pillow = load_hald_image(image)
-        self.assertEqual(tuple(lut_pillow.size), tuple(lut_unit.size))
-        self.assertNotEqual(lut_pillow.table, lut_unit.table)
-        for left, right in zip(lut_pillow.table, lut_unit.table):
-            self.assertAlmostEqual(left, right, 7)
-
-        for left, right in zip(lut_pillow.table, lut_numpy.table):
-            self.assertAlmostEqual(left, right, 10)
-
-
+        self.assertEqual(tuple(lut_pillow.size), tuple(identity.size))
+        self.assertEqual(lut_pillow.table, identity.table)

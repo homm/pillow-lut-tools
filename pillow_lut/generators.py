@@ -1,6 +1,6 @@
 from __future__ import division, unicode_literals, absolute_import
 
-from PIL import ImageFilter
+from . import ImageFilter
 
 
 try:
@@ -227,3 +227,27 @@ def rgb_color_enhance(size,
         return r, g, b
 
     return cls.generate(size, generate)
+
+
+def identity_table(size, target_mode=None, cls=ImageFilter.Color3DLUT):
+    """Returns noop lookup table with linear distributed values.
+
+    :param size: Size of the table. From 2 to 65.
+    :param target_mode: A mode for the result image. Should have not less
+                        than ``channels`` channels. Default is ``None``,
+                        which means that mode wouldn't be changed.
+    """
+    if numpy:
+        size = cls._check_size(size)
+        b, g, r = numpy.mgrid[
+            0 : 1 : size[2]*1j,
+            0 : 1 : size[1]*1j,
+            0 : 1 : size[0]*1j
+        ].astype(numpy.float32)
+
+        table = numpy.stack((r, g, b), axis=-1)
+        return cls(size, table.reshape(size[0] * size[1] * size[2] * 3),
+                   target_mode=target_mode)
+
+    return cls.generate(size, lambda r, g, b: (r, g, b),
+                        target_mode=target_mode)
