@@ -116,6 +116,10 @@ def sample_lut_cubic(lut, point):
     s12Dc = size1D * size2D * c
     c2, s1Dc2, s12Dc2 = c * 2, s1Dc * 2, s12Dc * 2
 
+    if size1D < 4 or size2D < 4 or size3D < 4:
+        raise ValueError("Cubic interpolation requires a table of size "
+                         "4 in all dimensions at least. Switching to linear.")
+
     idx, shift1D, shift2D, shift3D = _point_shift(lut.size, point, 1, 2)
     idx *= c
 
@@ -158,8 +162,8 @@ def sample_lut_cubic(lut, point):
         ),
         _inter_cubic_vector(shift2D, c,
             _inter_cubic_table(shift1D, c, lut.table,
-                idx+s12Dc2-s1Dc-c, idx+s12Dc-s1Dc2+0,
-                idx+s12Dc2-s1Dc+c, idx+s12Dc-s1Dc2+c2),
+                idx+s12Dc2-s1Dc-c, idx+s12Dc2-s1Dc+0,
+                idx+s12Dc2-s1Dc+c, idx+s12Dc2-s1Dc+c2),
             _inter_cubic_table(shift1D, c, lut.table,
                 idx+s12Dc2-c, idx+s12Dc2+0, idx+s12Dc2+c, idx+s12Dc2+c2),
             _inter_cubic_table(shift1D, c, lut.table,
