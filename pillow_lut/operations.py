@@ -85,6 +85,13 @@ def _point_shift(size, point, left, right):
 
 
 def sample_lut_linear(lut, point):
+    """Computes the new point value from given 3D lookup table
+    using linear interpolation.
+
+    :param lut: Lookup table, ``ImageFilter.Color3DLUT`` object.
+    :param point: A tuple of 3 values with coordinates in the cube,
+                  normalized from 0.0 to 1.0. Could be out of range.
+    """
     size1D, size2D, size3D = lut.size
     c = lut.channels
     s1Dc = size1D * c
@@ -110,6 +117,15 @@ def sample_lut_linear(lut, point):
 
 
 def sample_lut_cubic(lut, point):
+    """Computes the new point value from given 3D lookup table
+    using cubic interpolation.
+
+    :param lut: Lookup table, ``ImageFilter.Color3DLUT`` object.
+    :param point: A tuple of 3 values with coordinates in the cube,
+                  normalized from 0.0 to 1.0. Could be out of range,
+                  in this case, will be linear interpolated using
+                  two extreme values.
+    """
     size1D, size2D, size3D = lut.size
     c = lut.channels
     s1Dc = size1D * c
@@ -178,6 +194,16 @@ def sample_lut_cubic(lut, point):
 
 def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
                   cls=ImageFilter.Color3DLUT):
+    """Transforms given lookup table using another table and returns the result.
+    Sizes of the tables do not have to be the same. Moreover,
+    you can set the result table size with ``target_size`` argument.
+
+    :param source: Source lookup table, ``ImageFilter.Color3DLUT`` object.
+    :param lut: Applied lookup table, ``ImageFilter.Color3DLUT`` object.
+    :param interp: Interpolation type.
+                   Could be ``Image.LINEAR`` or ``Image.CUBIC``.
+                   Linear is default. Cubic is generally 10 times slower.
+    """
     if source.channels != 3:
         raise ValueError("Can transform only 3-channel cubes")
     if interp == Image.LINEAR:
