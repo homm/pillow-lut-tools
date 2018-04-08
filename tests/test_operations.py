@@ -241,3 +241,22 @@ class TestTransformLut(PillowTestCase):
         self.assertEqual(result.size, lut_out.size)
         for left, right in zip(result.table, identity.table):
             self.assertAlmostEqual(left, right, delta=0.001)
+
+    def test_fallback_to_linear(self):
+        lut = ImageFilter.Color3DLUT.generate(7,
+            lambda r, g, b: (r**1.5, g**1.5, b**1.5))
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            cubic = transform_lut(identity_table((3, 5, 5)), lut,
+                                  interp=Image.CUBIC)
+            self.assertEqual(len(w), 1)
+            self.assertIn('Cubic interpolation', "{}".format(w[0].message))
+
+        linear = transform_lut(identity_table((3, 5, 5)), lut)
+        self.assertEqual(cubic.table, linear.table)
+
+        cubic = transform_lut(identity_table((4, 5, 5)), lut,
+                              interp=Image.CUBIC)
+        linear = transform_lut(identity_table((4, 5, 5)), lut)
+        self.assertNotEqual(cubic.table, linear.table)
