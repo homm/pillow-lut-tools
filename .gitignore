@@ -11,3 +11,5 @@
 
 
 /.coverage
+
+/docs/_build
