@@ -84,7 +84,7 @@ def _point_shift(size, point, left, right):
     return idx, shift1D, shift2D, shift3D
 
 
-def point_lut_linear(lut, point):
+def sample_lut_linear(lut, point):
     size1D, size2D, size3D = lut.size
     c = lut.channels
     s1Dc = size1D * c
@@ -109,7 +109,7 @@ def point_lut_linear(lut, point):
     )
 
 
-def point_lut_cubic(lut, point):
+def sample_lut_cubic(lut, point):
     size1D, size2D, size3D = lut.size
     c = lut.channels
     s1Dc = size1D * c
@@ -177,9 +177,9 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
     if source.channels != 3:
         raise ValueError("Can transform only 3-channel cubes")
     if interp == Image.LINEAR:
-        point_lut = point_lut_linear
+        sample_lut = sample_lut_linear
     elif interp == Image.CUBIC:
-        point_lut = point_lut_cubic
+        sample_lut = sample_lut_cubic
     else:
         raise ValueError(
             "Only Image.LINEAR and Image.CUBIC interpolations are supported")
@@ -188,31 +188,35 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
         size1D, size2D, size3D = cls._check_size(target_size)
     else:
         size1D, size2D, size3D = source.size
-        index = 0
 
     if interp == Image.CUBIC and (size1D < 4 or size2D < 4 or size3D < 4):
-        point_lut = point_lut_linear
-        warnings.warn("Cubic interpolation requires at least table of size 4 "
-                      "in all dimensions. Switching to linear.")
+        sample_lut = sample_lut_linear
+        interp=Image.LINEAR
+        warnings.warn("Cubic interpolation requires a table of size "
+                      "4 in all dimensions at least. Switching to linear.")
 
-    if size1D * size2D * size3D >= 1000:
+    if (
+        (interp == Image.CUBIC and size1D * size2D * size3D >= 216) or
+        (interp == Image.LINEAR and size1D * size2D * size3D >= 1000)
+    ):
         warnings.warn("You are using not accelerated python version "
                       "of transform_lut, which could be fairly slow.")
 
     table = []
+    index = 0
     for b in range(size3D):
         for g in range(size2D):
             for r in range(size1D):
                 if target_size:
-                    point = point_lut(source, (r / float(size1D-1),
-                                               g / float(size2D-1),
-                                               b / float(size3D-1)))
+                    point = sample_lut(source, (r / float(size1D-1),
+                                                g / float(size2D-1),
+                                                b / float(size3D-1)))
                 else:
                     point = (source.table[index + 0],
                              source.table[index + 1],
                              source.table[index + 2])
                     index += 3
-                table.append(point_lut(lut, point))
+                table.append(sample_lut(lut, point))
 
     return cls((size1D, size2D, size3D), table,
                channels=lut.channels, target_mode=lut.mode or source.mode)

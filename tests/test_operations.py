@@ -3,7 +3,7 @@ from __future__ import division, unicode_literals, absolute_import
 import warnings
 
 from pillow_lut import operations
-from pillow_lut import (ImageFilter, Image, identity_table, point_lut_linear,
+from pillow_lut import (ImageFilter, Image, identity_table, sample_lut_linear,
                         transform_lut)
 
 from . import PillowTestCase, disable_numpy
@@ -16,7 +16,7 @@ class TestPointLutLinear(PillowTestCase):
         for b in data:
             for g in data:
                 for r in data:
-                    point = point_lut_linear(identity, (r, g, b))
+                    point = sample_lut_linear(identity, (r, g, b))
                     for left, right in zip(point, (r, g, b)):
                         self.assertAlmostEqual(left, right)
 
@@ -26,7 +26,7 @@ class TestPointLutLinear(PillowTestCase):
         for b in data:
             for g in data:
                 for r in data:
-                    point = point_lut_linear(identity, (r, g, b))
+                    point = sample_lut_linear(identity, (r, g, b))
                     for left, right in zip(point, (r, g, b)):
                         self.assertAlmostEqual(left, right)
 
@@ -36,7 +36,7 @@ class TestPointLutLinear(PillowTestCase):
         for b in data:
             for g in data:
                 for r in data:
-                    point = point_lut_linear(identity, (r, g, b))
+                    point = sample_lut_linear(identity, (r, g, b))
                     for left, right in zip(point, (r, g, b)):
                         self.assertAlmostEqual(left, right)
 
@@ -61,7 +61,7 @@ class TestPointLutLinear(PillowTestCase):
             ((.6, .6, .6), (.6, .4,  1)),
             (( 1,  1,  1), ( 1,  1,  2)),
         ]:
-            for l, r in zip(point_lut_linear(lut, point), res):
+            for l, r in zip(sample_lut_linear(lut, point), res):
                 self.assertAlmostEqual(l, r)
 
 
