@@ -126,6 +126,11 @@ class TestSampleLutCubic(PillowTestCase):
 
 
 class TestTransformLut(PillowTestCase):
+    lut_in = ImageFilter.Color3DLUT.generate(7,
+            lambda r, g, b: (r**1.2, g**1.2, b**1.2))
+    lut_out = ImageFilter.Color3DLUT.generate(7,
+        lambda r, g, b: (r**(1/1.2), g**(1/1.2), b**(1/1.2)))
+
     def test_wrong_args(self):
         with self.assertRaisesRegexp(ValueError, "only 3-channel cubes"):
             lut = ImageFilter.Color3DLUT.generate(5, channels=4,
@@ -156,6 +161,13 @@ class TestTransformLut(PillowTestCase):
         self.assertEqual(result.mode, 'RGB')
         self.assertEqual(result.channels, 3)
 
+        with disable_numpy(operations):
+            result = transform_lut(identity_table(4, target_mode='RGB'),
+                                   identity_table(5), target_size=(6, 7, 8))
+        self.assertEqual(tuple(result.size), (6, 7, 8))
+        self.assertEqual(result.mode, 'RGB')
+        self.assertEqual(result.channels, 3)
+
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
             transform_lut(identity_table(5), identity_table(10))
@@ -163,7 +175,8 @@ class TestTransformLut(PillowTestCase):
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
-            transform_lut(identity_table(10), identity_table(5))
+            with disable_numpy(operations):
+                transform_lut(identity_table(10), identity_table(5))
             self.assertEqual(len(w), 1)
             self.assertIn('fairly slow', "{}".format(w[0].message))
 
@@ -174,22 +187,30 @@ class TestTransformLut(PillowTestCase):
             self.assertEqual(len(w), 1)
             self.assertIn('fairly slow', "{}".format(w[0].message))
 
-    def test_identity(self):
+    def test_identity_linear(self):
         identity9 = identity_table(9)
         lut7 = ImageFilter.Color3DLUT.generate(7,
             lambda r, g, b: (r*r, g*g, b*b))
         lut9 = ImageFilter.Color3DLUT.generate(9,
             lambda r, g, b: (r*r, g*g, b*b))
 
-        result = transform_lut(lut7, identity9)
-        self.assertEqual(result.size, lut7.size)
-        for left, right in zip(result.table, lut7.table):
+        res_numpy = transform_lut(lut7, identity9)
+        self.assertEqual(res_numpy.size, lut7.size)
+        for left, right in zip(res_numpy.table, lut7.table):
             self.assertAlmostEqual(left, right)
 
-        result = transform_lut(identity9, lut7)
-        self.assertEqual(result.size, identity9.size)
-        for left, right in zip(result.table, lut9.table):
+        with disable_numpy(operations):
+            res_native = transform_lut(lut7, identity9)
+        self.assertEqual(res_native.table, res_numpy.table)
+
+        res_numpy = transform_lut(identity9, lut7)
+        self.assertEqual(res_numpy.size, identity9.size)
+        for left, right in zip(res_numpy.table, lut9.table):
             self.assertAlmostEqual(left, right, delta=0.007)
+
+        with disable_numpy(operations):
+            res_native = transform_lut(identity9, lut7)
+        self.assertEqual(res_native.table, res_numpy.table)
 
     def test_identity_cubic(self):
         identity9 = identity_table(9)
@@ -208,39 +229,61 @@ class TestTransformLut(PillowTestCase):
         for left, right in zip(result.table, lut9.table):
             self.assertAlmostEqual(left, right, delta=0.002)
 
-    def test_correctness(self):
-        lut_in = ImageFilter.Color3DLUT.generate(7,
-            lambda r, g, b: (r**1.2, g**1.2, b**1.2))
-        lut_out = ImageFilter.Color3DLUT.generate(7,
-            lambda r, g, b: (r**(1/1.2), g**(1/1.2), b**(1/1.2)))
+    def test_correctness_linear(self):
         identity = identity_table(7)
 
-        result = transform_lut(lut_in, lut_out)
-        self.assertEqual(result.size, lut_in.size)
-        for left, right in zip(result.table, identity.table):
+        res_numpy = transform_lut(self.lut_in, self.lut_out)
+        self.assertEqual(res_numpy.size, self.lut_in.size)
+        for left, right in zip(res_numpy.table, identity.table):
             self.assertAlmostEqual(left, right, delta=0.01)
 
-        result = transform_lut(lut_out, lut_in)
-        self.assertEqual(result.size, lut_out.size)
-        for left, right in zip(result.table, identity.table):
+        with disable_numpy(operations):
+            res_native = transform_lut(self.lut_in, self.lut_out)
+        self.assertEqual(res_native.table, res_numpy.table)
+
+        res_numpy = transform_lut(self.lut_out, self.lut_in)
+        self.assertEqual(res_numpy.size, self.lut_out.size)
+        for left, right in zip(res_numpy.table, identity.table):
             self.assertAlmostEqual(left, right, delta=0.003)
 
+        with disable_numpy(operations):
+            res_native = transform_lut(self.lut_out, self.lut_in)
+        self.assertEqual(res_native.table, res_numpy.table)
+
     def test_correctness_cubic(self):
-        lut_in = ImageFilter.Color3DLUT.generate(7,
-            lambda r, g, b: (r**1.2, g**1.2, b**1.2))
-        lut_out = ImageFilter.Color3DLUT.generate(7,
-            lambda r, g, b: (r**(1/1.2), g**(1/1.2), b**(1/1.2)))
         identity = identity_table(7)
 
-        result = transform_lut(lut_in, lut_out, interp=Image.CUBIC)
-        self.assertEqual(result.size, lut_in.size)
+        result = transform_lut(self.lut_in, self.lut_out, interp=Image.CUBIC)
+        self.assertEqual(result.size, self.lut_in.size)
         for left, right in zip(result.table, identity.table):
             self.assertAlmostEqual(left, right, delta=0.007)
 
-        result = transform_lut(lut_out, lut_in, interp=Image.CUBIC)
-        self.assertEqual(result.size, lut_out.size)
+        result = transform_lut(self.lut_out, self.lut_in, interp=Image.CUBIC)
+        self.assertEqual(result.size, self.lut_out.size)
         for left, right in zip(result.table, identity.table):
             self.assertAlmostEqual(left, right, delta=0.001)
+
+    def test_target_size_linear(self):
+        identity = identity_table(9)
+
+        res_numpy = transform_lut(self.lut_out, self.lut_in, target_size=9)
+        self.assertEqual(res_numpy.size, identity.size)
+        for left, right in zip(res_numpy.table, identity.table):
+            self.assertAlmostEqual(left, right, delta=0.007)
+
+        with disable_numpy(operations):
+            res_native = transform_lut(self.lut_out, self.lut_in, target_size=9)
+        self.assertEqual(res_native.table, res_numpy.table)
+
+    def test_target_size_cubic(self):
+
+        identity = identity_table(9)
+
+        result = transform_lut(self.lut_out, self.lut_in,
+                               target_size=9, interp=Image.CUBIC)
+        self.assertEqual(result.size, identity.size)
+        for left, right in zip(result.table, identity.table):
+            self.assertAlmostEqual(left, right, delta=0.005)
 
     def test_fallback_to_linear(self):
         lut = ImageFilter.Color3DLUT.generate(7,

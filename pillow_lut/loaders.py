@@ -7,7 +7,8 @@ from .utils import isPath
 
 try:
     import numpy
-except ImportError: numpy = None
+except ImportError:  # pragma: no cover
+    numpy = None
 
 
 def load_cube_file(lines, target_mode=None, cls=ImageFilter.Color3DLUT):

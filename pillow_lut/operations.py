@@ -5,6 +5,12 @@ import warnings
 from . import Image, ImageFilter
 
 
+try:
+    import numpy
+except ImportError:  # pragma: no cover
+    numpy = None
+
+
 def _inter_linear(d, v0, v1):
     return v0 + (v1 - v0) * d
 
@@ -82,6 +88,44 @@ def _point_shift(size, point, left, right):
     shift3D = index3D - idx3D
     idx = idx1D + idx2D * size1D + idx3D * size1D * size2D
     return idx, shift1D, shift2D, shift3D
+
+
+def _points_shift_numpy(size, points, left, right):
+    size1D, size2D, size3D = size
+
+    index1D = points[:, 0] * (size1D - 1)
+    index2D = points[:, 1] * (size2D - 1)
+    index3D = points[:, 2] * (size3D - 1)
+    idx1D = index1D.astype(numpy.int32).clip(left, size1D - 1 - right)
+    idx2D = index2D.astype(numpy.int32).clip(left, size2D - 1 - right)
+    idx3D = index3D.astype(numpy.int32).clip(left, size3D - 1 - right)
+    shift1D = (index1D - idx1D).reshape(idx1D.shape[0], 1)
+    shift2D = (index2D - idx2D).reshape(idx2D.shape[0], 1)
+    shift3D = (index3D - idx3D).reshape(idx3D.shape[0], 1)
+    idx = idx1D + idx2D * size1D + idx3D * size1D * size2D
+    return idx, shift1D, shift2D, shift3D
+
+
+def _sample_lut_linear_numpy(lut, points):
+    s1D, s2D, s3D = lut.size
+    s12D = s1D * s2D
+
+    idx, shift1D, shift2D, shift3D = _points_shift_numpy(lut.size, points, 0, 1)
+    table = numpy.array(lut.table).reshape(s1D * s2D * s3D, lut.channels)
+
+    return _inter_linear(shift3D,
+        _inter_linear(shift2D,
+            _inter_linear(shift1D, table[idx + 0], table[idx + 1]),
+            _inter_linear(shift1D, table[idx + s1D + 0],
+                          table[idx + s1D + 1]),
+        ),
+        _inter_linear(shift2D,
+            _inter_linear(shift1D, table[idx + s12D + 0],
+                          table[idx + s12D + 1]),
+            _inter_linear(shift1D, table[idx + s12D + s1D + 0],
+                          table[idx + s12D + s1D + 1]),
+        ),
+    )
 
 
 def sample_lut_linear(lut, point):
@@ -225,28 +269,45 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
         warnings.warn("Cubic interpolation requires a table of size "
                       "4 in all dimensions at least. Switching to linear.")
 
-    if (
-        (interp == Image.CUBIC and size1D * size2D * size3D >= 216) or
-        (interp == Image.LINEAR and size1D * size2D * size3D >= 1000)
-    ):
-        warnings.warn("You are using not accelerated python version "
-                      "of transform_lut, which could be fairly slow.")
+    if numpy and interp == Image.LINEAR:
+        shape = (size1D * size2D * size3D, source.channels)
+        if target_size:
+            b, g, r = numpy.mgrid[
+                0 : 1 : size3D*1j,
+                0 : 1 : size2D*1j,
+                0 : 1 : size1D*1j
+            ].astype(numpy.float32)
+            points = numpy.stack((r, g, b), axis=-1).reshape(shape)
+            points = _sample_lut_linear_numpy(source, points)
+        else:
+            points = numpy.array(source.table).reshape(shape)
 
-    table = []
-    index = 0
-    for b in range(size3D):
-        for g in range(size2D):
-            for r in range(size1D):
-                if target_size:
-                    point = sample_lut(source, (r / float(size1D-1),
-                                                g / float(size2D-1),
-                                                b / float(size3D-1)))
-                else:
-                    point = (source.table[index + 0],
-                             source.table[index + 1],
-                             source.table[index + 2])
-                    index += 3
-                table.append(sample_lut(lut, point))
+        points = _sample_lut_linear_numpy(lut, points)
+        table = points.reshape(points.size)
+
+    else:  # Native implementation
+        if (
+            (interp == Image.CUBIC and size1D * size2D * size3D >= 216) or
+            (interp == Image.LINEAR and size1D * size2D * size3D >= 1000)
+        ):
+            warnings.warn("You are using not accelerated python version "
+                          "of transform_lut, which could be fairly slow.")
+
+        table = []
+        index = 0
+        for b in range(size3D):
+            for g in range(size2D):
+                for r in range(size1D):
+                    if target_size:
+                        point = sample_lut(source, (r / float(size1D-1),
+                                                    g / float(size2D-1),
+                                                    b / float(size3D-1)))
+                    else:
+                        point = (source.table[index + 0],
+                                 source.table[index + 1],
+                                 source.table[index + 2])
+                        index += 3
+                    table.append(sample_lut(lut, point))
 
     return cls((size1D, size2D, size3D), table,
                channels=lut.channels, target_mode=lut.mode or source.mode)
