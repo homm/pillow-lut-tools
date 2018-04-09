@@ -7,7 +7,8 @@ from . import Image, ImageFilter
 
 try:
     import numpy
-except ImportError: numpy = None
+except ImportError:  # pragma: no cover
+    numpy = None
 
 
 def _inter_linear(d, v0, v1):

@@ -5,11 +5,13 @@ from . import ImageFilter
 
 try:
     from . import _ext
-except ImportError: _ext = None
+except ImportError:  # pragma: no cover
+    _ext = None
 
 try:
     import numpy
-except ImportError: numpy = None
+except ImportError:  # pragma: no cover
+    numpy = None
 
 
 def _srgb_to_linear(s):
