@@ -282,31 +282,31 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
             points = numpy.array(source.table).reshape(shape)
 
         points = _sample_lut_linear_numpy(lut, points)
-        return cls((size1D, size2D, size3D), points.reshape(points.size),
-                   channels=lut.channels, target_mode=lut.mode or source.mode)
+        table = points.reshape(points.size)
 
-    if (
-        (interp == Image.CUBIC and size1D * size2D * size3D >= 216) or
-        (interp == Image.LINEAR and size1D * size2D * size3D >= 1000)
-    ):
-        warnings.warn("You are using not accelerated python version "
-                      "of transform_lut, which could be fairly slow.")
+    else:  # Native implementation
+        if (
+            (interp == Image.CUBIC and size1D * size2D * size3D >= 216) or
+            (interp == Image.LINEAR and size1D * size2D * size3D >= 1000)
+        ):
+            warnings.warn("You are using not accelerated python version "
+                          "of transform_lut, which could be fairly slow.")
 
-    table = []
-    index = 0
-    for b in range(size3D):
-        for g in range(size2D):
-            for r in range(size1D):
-                if target_size:
-                    point = sample_lut(source, (r / float(size1D-1),
-                                                g / float(size2D-1),
-                                                b / float(size3D-1)))
-                else:
-                    point = (source.table[index + 0],
-                             source.table[index + 1],
-                             source.table[index + 2])
-                    index += 3
-                table.append(sample_lut(lut, point))
+        table = []
+        index = 0
+        for b in range(size3D):
+            for g in range(size2D):
+                for r in range(size1D):
+                    if target_size:
+                        point = sample_lut(source, (r / float(size1D-1),
+                                                    g / float(size2D-1),
+                                                    b / float(size3D-1)))
+                    else:
+                        point = (source.table[index + 0],
+                                 source.table[index + 1],
+                                 source.table[index + 2])
+                        index += 3
+                    table.append(sample_lut(lut, point))
 
     return cls((size1D, size2D, size3D), table,
                channels=lut.channels, target_mode=lut.mode or source.mode)
