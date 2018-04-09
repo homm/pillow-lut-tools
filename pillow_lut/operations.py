@@ -110,8 +110,7 @@ def _sample_lut_linear_numpy(lut, points):
     s12D = s1D * s2D
 
     idx, shift1D, shift2D, shift3D = _points_shift_numpy(lut.size, points, 0, 1)
-    shape = (s1D * s2D * s3D, lut.channels)
-    table = numpy.array(lut.table).reshape(shape)
+    table = numpy.array(lut.table).reshape(s1D * s2D * s3D, lut.channels)
 
     return _inter_linear(shift3D,
         _inter_linear(shift2D,
