@@ -187,7 +187,6 @@ class TestIdentityTable(PillowTestCase):
         lut_numpy = identity_table((4, 5, 6))
         self.assertAlmostEqualLuts(lut_numpy, lut_ref)
 
-
         with disable_numpy(generators):
             lut_native = identity_table((4, 5, 6))
         self.assertEqual(lut_native.size, lut_ref.size)
