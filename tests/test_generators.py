@@ -146,8 +146,7 @@ class TestRgbColorEnhance(PillowTestCase):
         identity = rgb_color_enhance(13)
         lut = rgb_color_enhance(13, linear=True)
         self.assertTrue(isinstance(lut, ImageFilter.Color3DLUT))
-        for left, right in zip(lut.table, identity.table):
-            self.assertAlmostEqual(left, right, 6)
+        self.assertAlmostEqualLuts(lut, identity)
 
     def test_all_args(self):
         lut = rgb_color_enhance(
@@ -166,10 +165,8 @@ class TestRgbColorEnhance(PillowTestCase):
 
         with disable_numpy(generators):
             lut_native = rgb_color_enhance((4, 5, 6))
-        self.assertEqual(lut_native.size, lut_ref.size)
+        self.assertAlmostEqualLuts(lut_native, lut_ref)
         self.assertNotEqual(lut_native.table, lut_ref.table)
-        for left, right in zip(lut_numpy.table, lut_ref.table):
-            self.assertAlmostEqual(left, right, 7)
 
     def test_correctness(self):
         lut_numpy = rgb_color_enhance(13, brightness=0.1, contrast=0.1,
@@ -178,10 +175,8 @@ class TestRgbColorEnhance(PillowTestCase):
             lut_native = rgb_color_enhance(13, brightness=0.1, contrast=0.1,
                 saturation=0.1, vibrance=0.1, gamma=1.1, linear=True)
 
-        self.assertEqual(lut_numpy.size, lut_native.size)
+        self.assertAlmostEqualLuts(lut_numpy, lut_native, 14)
         self.assertNotEqual(lut_numpy.table, lut_native.table)
-        for left, right in zip(lut_numpy.table, lut_native.table):
-            self.assertAlmostEqual(left, right, 6)
 
 
 class TestIdentityTable(PillowTestCase):
@@ -190,10 +185,7 @@ class TestIdentityTable(PillowTestCase):
                                                   lambda a, b, c: (a, b, c))
 
         lut_numpy = identity_table((4, 5, 6))
-        self.assertEqual(lut_numpy.size, lut_ref.size)
-        self.assertNotEqual(lut_numpy.table, lut_ref.table)
-        for left, right in zip(lut_numpy.table, lut_ref.table):
-            self.assertAlmostEqual(left, right, 7)
+        self.assertAlmostEqualLuts(lut_numpy, lut_ref)
 
         with disable_numpy(generators):
             lut_native = identity_table((4, 5, 6))

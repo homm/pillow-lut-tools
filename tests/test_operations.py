@@ -195,22 +195,18 @@ class TestTransformLut(PillowTestCase):
             lambda r, g, b: (r*r, g*g, b*b))
 
         res_numpy = transform_lut(lut7, identity9)
-        self.assertEqual(res_numpy.size, lut7.size)
-        for left, right in zip(res_numpy.table, lut7.table):
-            self.assertAlmostEqual(left, right)
+        self.assertAlmostEqualLuts(res_numpy, lut7)
 
         with disable_numpy(operations):
             res_native = transform_lut(lut7, identity9)
-        self.assertEqual(res_native.table, res_numpy.table)
+        self.assertAlmostEqualLuts(res_native, res_numpy)
 
         res_numpy = transform_lut(identity9, lut7)
-        self.assertEqual(res_numpy.size, identity9.size)
-        for left, right in zip(res_numpy.table, lut9.table):
-            self.assertAlmostEqual(left, right, delta=0.007)
+        self.assertAlmostEqualLuts(res_numpy, lut9, 1)
 
         with disable_numpy(operations):
             res_native = transform_lut(identity9, lut7)
-        self.assertEqual(res_native.table, res_numpy.table)
+        self.assertAlmostEqualLuts(res_native, res_numpy)
 
     def test_identity_cubic(self):
         identity9 = identity_table(9)
@@ -220,70 +216,53 @@ class TestTransformLut(PillowTestCase):
             lambda r, g, b: (r*r, g*g, b*b))
 
         result = transform_lut(lut7, identity9, interp=Image.CUBIC)
-        self.assertEqual(result.size, lut7.size)
-        for left, right in zip(result.table, lut7.table):
-            self.assertAlmostEqual(left, right)
+        self.assertAlmostEqualLuts(result, lut7)
 
         result = transform_lut(identity9, lut7, interp=Image.CUBIC)
-        self.assertEqual(result.size, identity9.size)
-        for left, right in zip(result.table, lut9.table):
-            self.assertAlmostEqual(left, right, delta=0.002)
+        self.assertAlmostEqualLuts(result, lut9, 3)
 
     def test_correctness_linear(self):
         identity = identity_table(7)
 
         res_numpy = transform_lut(self.lut_in, self.lut_out)
-        self.assertEqual(res_numpy.size, self.lut_in.size)
-        for left, right in zip(res_numpy.table, identity.table):
-            self.assertAlmostEqual(left, right, delta=0.01)
+        self.assertAlmostEqualLuts(res_numpy, identity, 4)
 
         with disable_numpy(operations):
             res_native = transform_lut(self.lut_in, self.lut_out)
-        self.assertEqual(res_native.table, res_numpy.table)
+        self.assertAlmostEqualLuts(res_native, res_numpy)
 
         res_numpy = transform_lut(self.lut_out, self.lut_in)
-        self.assertEqual(res_numpy.size, self.lut_out.size)
-        for left, right in zip(res_numpy.table, identity.table):
-            self.assertAlmostEqual(left, right, delta=0.003)
+        self.assertAlmostEqualLuts(res_numpy, identity, 6)
 
         with disable_numpy(operations):
             res_native = transform_lut(self.lut_out, self.lut_in)
-        self.assertEqual(res_native.table, res_numpy.table)
+        self.assertAlmostEqualLuts(res_native, res_numpy)
 
     def test_correctness_cubic(self):
         identity = identity_table(7)
 
         result = transform_lut(self.lut_in, self.lut_out, interp=Image.CUBIC)
-        self.assertEqual(result.size, self.lut_in.size)
-        for left, right in zip(result.table, identity.table):
-            self.assertAlmostEqual(left, right, delta=0.007)
+        self.assertAlmostEqualLuts(result, identity, 4)
 
         result = transform_lut(self.lut_out, self.lut_in, interp=Image.CUBIC)
-        self.assertEqual(result.size, self.lut_out.size)
-        for left, right in zip(result.table, identity.table):
-            self.assertAlmostEqual(left, right, delta=0.001)
+        self.assertAlmostEqualLuts(result, identity, 7)
 
     def test_target_size_linear(self):
         identity = identity_table(9)
 
         res_numpy = transform_lut(self.lut_out, self.lut_in, target_size=9)
-        self.assertEqual(res_numpy.size, identity.size)
-        for left, right in zip(res_numpy.table, identity.table):
-            self.assertAlmostEqual(left, right, delta=0.007)
+        self.assertAlmostEqualLuts(res_numpy, identity, 4)
 
         with disable_numpy(operations):
             res_native = transform_lut(self.lut_out, self.lut_in, target_size=9)
-        self.assertEqual(res_native.table, res_numpy.table)
+        self.assertAlmostEqualLuts(res_native, res_numpy)
 
     def test_target_size_cubic(self):
-
         identity = identity_table(9)
 
         result = transform_lut(self.lut_out, self.lut_in,
                                target_size=9, interp=Image.CUBIC)
-        self.assertEqual(result.size, identity.size)
-        for left, right in zip(result.table, identity.table):
-            self.assertAlmostEqual(left, right, delta=0.005)
+        self.assertAlmostEqualLuts(result, identity, 4)
 
     def test_fallback_to_linear(self):
         lut = ImageFilter.Color3DLUT.generate(7,
