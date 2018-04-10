@@ -72,8 +72,6 @@ class TestRgbColorEnhance(PillowTestCase):
             rgb_color_enhance(3, warmth=-1.1)
         with self.assertRaisesRegexp(ValueError, "Warmth should be"):
             rgb_color_enhance(3, warmth=1.1)
-        with self.assertRaisesRegexp(ValueError, "Warmth should be"):
-            rgb_color_enhance(3, warmth=(0.5, 0.5, 1.1))
 
         with self.assertRaisesRegexp(ValueError, "Saturation should be"):
             rgb_color_enhance(3, saturation=-1.1)
