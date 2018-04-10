@@ -54,26 +54,40 @@ class TestRgbColorEnhance(PillowTestCase):
         with self.assertRaisesRegexp(ValueError, "Brightness should be"):
             rgb_color_enhance(3, brightness=(0.5, 0.5, 1.1))
 
+        with self.assertRaisesRegexp(ValueError, "Exposure should be"):
+            rgb_color_enhance(3, exposure=-5.1)
+        with self.assertRaisesRegexp(ValueError, "Exposure should be"):
+            rgb_color_enhance(3, exposure=5.1)
+        with self.assertRaisesRegexp(ValueError, "Exposure should be"):
+            rgb_color_enhance(3, exposure=(0.5, 0.5, 5.1))
+
         with self.assertRaisesRegexp(ValueError, "Contrast should be"):
             rgb_color_enhance(3, contrast=-1.1)
         with self.assertRaisesRegexp(ValueError, "Contrast should be"):
-            rgb_color_enhance(3, contrast=1.1)
+            rgb_color_enhance(3, contrast=5.1)
         with self.assertRaisesRegexp(ValueError, "Contrast should be"):
-            rgb_color_enhance(3, contrast=(0.5, 0.5, 1.1))
+            rgb_color_enhance(3, contrast=(0.5, 0.5, 5.1))
+
+        with self.assertRaisesRegexp(ValueError, "Warmth should be"):
+            rgb_color_enhance(3, warmth=-1.1)
+        with self.assertRaisesRegexp(ValueError, "Warmth should be"):
+            rgb_color_enhance(3, warmth=1.1)
+        with self.assertRaisesRegexp(ValueError, "Warmth should be"):
+            rgb_color_enhance(3, warmth=(0.5, 0.5, 1.1))
 
         with self.assertRaisesRegexp(ValueError, "Saturation should be"):
             rgb_color_enhance(3, saturation=-1.1)
         with self.assertRaisesRegexp(ValueError, "Saturation should be"):
-            rgb_color_enhance(3, saturation=1.1)
+            rgb_color_enhance(3, saturation=5.1)
         with self.assertRaisesRegexp(ValueError, "Saturation should be"):
-            rgb_color_enhance(3, saturation=(0.5, 0.5, 1.1))
+            rgb_color_enhance(3, saturation=(0.5, 0.5, 5.1))
 
         with self.assertRaisesRegexp(ValueError, "Vibrance should be"):
             rgb_color_enhance(3, vibrance=-1.1)
         with self.assertRaisesRegexp(ValueError, "Vibrance should be"):
-            rgb_color_enhance(3, vibrance=1.1)
+            rgb_color_enhance(3, vibrance=5.1)
         with self.assertRaisesRegexp(ValueError, "Vibrance should be"):
-            rgb_color_enhance(3, vibrance=(0.5, 0.5, 1.1))
+            rgb_color_enhance(3, vibrance=(0.5, 0.5, 5.1))
 
         with self.assertRaisesRegexp(ValueError, "Hue should be"):
             rgb_color_enhance(3, hue=-0.1)
@@ -101,13 +115,29 @@ class TestRgbColorEnhance(PillowTestCase):
         lut = rgb_color_enhance(5, brightness=(0, 0, 1))
         self.assertNotEqual(lut.table, self.identity.table)
 
+        lut = rgb_color_enhance(5, exposure=0.5)
+        self.assertNotEqual(lut.table, self.identity.table)
+        lut = rgb_color_enhance(5, exposure=(-5, 0, 0))
+        self.assertNotEqual(lut.table, self.identity.table)
+        lut = rgb_color_enhance(5, exposure=(0, 0.1, 0))
+        self.assertNotEqual(lut.table, self.identity.table)
+        lut = rgb_color_enhance(5, exposure=(0, 0, 5))
+        self.assertNotEqual(lut.table, self.identity.table)
+
         lut = rgb_color_enhance(5, contrast=0.1)
         self.assertNotEqual(lut.table, self.identity.table)
         lut = rgb_color_enhance(5, contrast=(-1, 0, 0))
         self.assertNotEqual(lut.table, self.identity.table)
         lut = rgb_color_enhance(5, contrast=(0, 0.1, 0))
         self.assertNotEqual(lut.table, self.identity.table)
-        lut = rgb_color_enhance(5, contrast=(0, 0, 1))
+        lut = rgb_color_enhance(5, contrast=(0, 0, 5))
+        self.assertNotEqual(lut.table, self.identity.table)
+
+        lut = rgb_color_enhance(5, warmth=0.1)
+        self.assertNotEqual(lut.table, self.identity.table)
+        lut = rgb_color_enhance(5, warmth=-1)
+        self.assertNotEqual(lut.table, self.identity.table)
+        lut = rgb_color_enhance(5, warmth=1)
         self.assertNotEqual(lut.table, self.identity.table)
 
         lut = rgb_color_enhance(5, saturation=0.1)
@@ -116,7 +146,7 @@ class TestRgbColorEnhance(PillowTestCase):
         self.assertNotEqual(lut.table, self.identity.table)
         lut = rgb_color_enhance(5, saturation=(0, 0.1, 0))
         self.assertNotEqual(lut.table, self.identity.table)
-        lut = rgb_color_enhance(5, saturation=(0, 0, 1))
+        lut = rgb_color_enhance(5, saturation=(0, 0, 5))
         self.assertNotEqual(lut.table, self.identity.table)
 
         lut = rgb_color_enhance(5, vibrance=0.1)
@@ -125,7 +155,7 @@ class TestRgbColorEnhance(PillowTestCase):
         self.assertNotEqual(lut.table, self.identity.table)
         lut = rgb_color_enhance(5, vibrance=(0, 0.1, 0))
         self.assertNotEqual(lut.table, self.identity.table)
-        lut = rgb_color_enhance(5, vibrance=(0, 0, 1))
+        lut = rgb_color_enhance(5, vibrance=(0, 0, 5))
         self.assertNotEqual(lut.table, self.identity.table)
 
         lut = rgb_color_enhance(5, hue=0.1)
@@ -150,8 +180,8 @@ class TestRgbColorEnhance(PillowTestCase):
 
     def test_all_args(self):
         lut = rgb_color_enhance(
-            5, brightness=0.1, contrast=0.1, saturation=0.1,
-            vibrance=0.1, hue=0.1, gamma=1.1, linear=True,
+            5, brightness=0.1, exposure=-0.2, contrast=0.1, warmth=0.3,
+            saturation=0.1, vibrance=0.1, hue=0.1, gamma=1.1, linear=True,
         )
         self.assertTrue(isinstance(lut, ImageFilter.Color3DLUT))
         self.assertNotEqual(lut.table, self.identity.table)
@@ -169,13 +199,16 @@ class TestRgbColorEnhance(PillowTestCase):
         self.assertNotEqual(lut_native.table, lut_ref.table)
 
     def test_correctness(self):
-        lut_numpy = rgb_color_enhance(13, brightness=0.1, contrast=0.1,
-            saturation=0.1, vibrance=0.1, gamma=1.1, linear=True)
+        lut_numpy = rgb_color_enhance(
+            13, brightness=0.1, exposure=-0.2, contrast=0.1, warmth=0.5,
+            saturation=0.1, vibrance=0.1, gamma=1.1, linear=True
+        )
         with disable_numpy(generators):
-            lut_native = rgb_color_enhance(13, brightness=0.1, contrast=0.1,
-                saturation=0.1, vibrance=0.1, gamma=1.1, linear=True)
-
-        self.assertAlmostEqualLuts(lut_numpy, lut_native, 14)
+            lut_native = rgb_color_enhance(
+                13, brightness=0.1, exposure=-0.2, contrast=0.1, warmth=0.5,
+                saturation=0.1, vibrance=0.1, gamma=1.1, linear=True
+            )
+        self.assertAlmostEqualLuts(lut_numpy, lut_native, 10)
         self.assertNotEqual(lut_numpy.table, lut_native.table)
 
 
