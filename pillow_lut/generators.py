@@ -77,6 +77,16 @@ def _yuv_to_rgb(y, u, v):
     return r, g, b
 
 
+def _alter_lut(self, callback):
+    index = 0
+    for b in range(self.size[2]):
+        for g in range(self.size[1]):
+            for r in range(self.size[1]):
+                values = callback(*self.table[index:index+3])
+                self.table[index:index+3] = values
+                index += 3
+
+
 def rgb_color_enhance(source,
                       brightness=0, exposure=0, contrast=0, warmth=0,
                       saturation=0, vibrance=0,
@@ -106,6 +116,9 @@ def rgb_color_enhance(source,
                    before the manipulating and return after. Default is False.
                    Most arguments more sensitive in this mode.
     """
+    source_is_lut = hasattr(source, 'table')
+    if source_is_lut and source.channels != 3:
+        raise ValueError("Only 3-channels table could be a source")
 
     if brightness:
         if not isinstance(brightness, (tuple, list)):
@@ -170,12 +183,19 @@ def rgb_color_enhance(source,
             raise ValueError("Gamma should be from 0.0 to 10.0")
 
     if numpy and not hue:
-        size = cls._check_size(source)
-        b, g, r = numpy.mgrid[
-            0 : 1 : size[2]*1j,
-            0 : 1 : size[1]*1j,
-            0 : 1 : size[0]*1j
-        ].astype(numpy.float32)
+        if source_is_lut:
+            size = source.size
+            points = numpy.array(source.table, dtype=numpy.float32)
+            r = points[0::3]
+            g = points[1::3]
+            b = points[2::3]
+        else:
+            size = cls._check_size(source)
+            b, g, r = numpy.mgrid[
+                0 : 1 : size[2]*1j,
+                0 : 1 : size[1]*1j,
+                0 : 1 : size[0]*1j
+            ].astype(numpy.float32)
 
         if linear:
             r = _srgb_to_linear_numpy(r)
@@ -289,7 +309,13 @@ def rgb_color_enhance(source,
 
         return r, g, b
 
-    return cls.generate(source, generate)
+    if source_is_lut:
+        result = cls(source.size, source.table,
+                     channels=3, target_mode=source.mode)
+        _alter_lut(result, generate)
+        return result
+    else:
+        return cls.generate(source, generate)
 
 
 def identity_table(size, target_mode=None, cls=ImageFilter.Color3DLUT):
