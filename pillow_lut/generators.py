@@ -77,16 +77,6 @@ def _yuv_to_rgb(y, u, v):
     return r, g, b
 
 
-def _alter_lut(self, callback):
-    index = 0
-    for b in range(self.size[2]):
-        for g in range(self.size[1]):
-            for r in range(self.size[0]):
-                values = callback(*self.table[index:index+3])
-                self.table[index:index+3] = values
-                index += 3
-
-
 def rgb_color_enhance(source,
                       brightness=0, exposure=0, contrast=0, warmth=0,
                       saturation=0, vibrance=0,
@@ -310,10 +300,7 @@ def rgb_color_enhance(source,
         return r, g, b
 
     if source_is_lut:
-        result = cls(source.size, source.table,
-                     channels=3, target_mode=source.mode)
-        _alter_lut(result, generate)
-        return result
+        return source.transform(generate)
     else:
         return cls.generate(source, generate)
 
