@@ -81,7 +81,7 @@ def _alter_lut(self, callback):
     index = 0
     for b in range(self.size[2]):
         for g in range(self.size[1]):
-            for r in range(self.size[1]):
+            for r in range(self.size[0]):
                 values = callback(*self.table[index:index+3])
                 self.table[index:index+3] = values
                 index += 3
