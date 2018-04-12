@@ -68,12 +68,13 @@ def load_cube_file(lines, target_mode=None, cls=ImageFilter.Color3DLUT):
             if len(pixel) != channels:
                 raise ValueError(
                     "Wrong number of colors on line {}".format(i))
-            table.append(tuple(pixel))
+            table.extend(pixel)
     finally:
         if file is not None:
             file.close()
 
-    instance = cls(size, table, channels, target_mode)
+    instance = cls(size, table, channels=channels,
+                   target_mode=target_mode, _copy_table=False)
     if name is not None:
         instance.name = name
     return instance
@@ -112,4 +113,4 @@ def load_hald_image(image, target_mode=None, cls=ImageFilter.Color3DLUT):
             for im in image.split()
         ])
 
-    return cls(size, table, target_mode=target_mode)
+    return cls(size, table, target_mode=target_mode, _copy_table=False)

@@ -276,9 +276,9 @@ class TestTransformLut(PillowTestCase):
             self.assertIn('Cubic interpolation', "{}".format(w[0].message))
 
         linear = transform_lut(identity_table((3, 5, 5)), lut)
-        self.assertEqual(cubic.table, linear.table)
+        self.assertEqualLuts(cubic, linear)
 
         cubic = transform_lut(identity_table((4, 5, 5)), lut,
                               interp=Image.CUBIC)
         linear = transform_lut(identity_table((4, 5, 5)), lut)
-        self.assertNotEqual(cubic.table, linear.table)
+        self.assertNotEqualLutTables(cubic, linear)

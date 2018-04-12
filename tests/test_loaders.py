@@ -143,10 +143,8 @@ class TestLoadHaldImage(PillowTestCase):
         image = Image.open(resource('files', 'hald.4.png'))
 
         lut_numpy = load_hald_image(image)
-        self.assertEqual(tuple(lut_numpy.size), tuple(identity.size))
-        self.assertEqual(lut_numpy.table, identity.table)
+        self.assertEqualLuts(lut_numpy, identity)
 
         with disable_numpy(loaders):
             lut_pillow = load_hald_image(image)
-        self.assertEqual(tuple(lut_pillow.size), tuple(identity.size))
-        self.assertEqual(lut_pillow.table, identity.table)
+        self.assertEqualLuts(lut_pillow, identity)

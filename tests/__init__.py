@@ -51,3 +51,28 @@ class PillowTestCase(unittest.TestCase):
             idx = diffs.argmax()
             msg = '{} != {} within {} diff'.format(left[idx], right[idx], diff)
         raise self.failureException(msg)
+
+    def assertEqualLuts(self, left, right, msg=None):
+        self.assertEqual(tuple(left.size), tuple(right.size))
+        self.assertEqual(left.channels, right.channels)
+
+        left = numpy.array(left.table, dtype=numpy.float64)
+        right = numpy.array(right.table, dtype=numpy.float64)
+        if numpy.array_equal(left, right):
+            return
+
+        if not msg:
+            msg = ['Tables are not equal. Different elements:']
+            for idx in (left - right).nonzero()[0][:20]:
+                msg.append("  {}: {}, {}".format(idx, left[idx], right[idx]))
+            msg = "\n".join(msg)
+        raise self.failureException(msg)
+
+    def assertNotEqualLutTables(self, left, right, msg=None):
+        self.assertEqual(tuple(left.size), tuple(right.size))
+        self.assertEqual(left.channels, right.channels)
+
+        left = numpy.array(left.table, dtype=numpy.float64)
+        right = numpy.array(right.table, dtype=numpy.float64)
+        if numpy.array_equal(left, right):
+            raise self.failureException(msg or 'Tables are equal')
