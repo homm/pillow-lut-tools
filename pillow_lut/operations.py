@@ -315,3 +315,48 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
                channels=lut.channels, target_mode=lut.mode or source.mode,
                _copy_table=False)
 
+
+def emphasize_lut(source, scale):
+    if not isinstance(scale, (tuple, list)):
+        scale = (scale, scale, scale)
+
+    if numpy:
+        size1D, size2D, size3D = source.size
+        sb, sg, sr = numpy.mgrid[
+            0 : 1 : size3D*1j,
+            0 : 1 : size2D*1j,
+            0 : 1 : size1D*1j
+        ].astype(numpy.float32).reshape(3, size1D * size2D * size3D)
+
+        points = numpy.array(source.table, dtype=numpy.float32)
+        points = points.reshape(size1D * size2D * size3D, source.channels)
+        points[:, 0] = sr + (points[:, 0] - sr) * scale[0]
+        points[:, 1] = sg + (points[:, 1] - sg) * scale[1]
+        points[:, 2] = sb + (points[:, 2] - sb) * scale[2]
+
+        return type(source)(
+            source.size, points.reshape(points.size),channels=source.channels,
+            target_mode=source.mode, _copy_table=False,
+        )
+
+    def transform3(sr, sg, sb, r, g, b):
+        return (
+            sr + (r - sr) * scale[0],
+            sg + (g - sg) * scale[1],
+            sb + (b - sb) * scale[2],
+        )
+
+    def transform4(sr, sg, sb, r, g, b, x):
+        return (
+            sr + (r - sr) * scale[0],
+            sg + (g - sg) * scale[1],
+            sb + (b - sb) * scale[2],
+            x,
+        )
+
+    if source.channels == 3:
+        return source.transform(transform3, with_normals=True)
+    elif source.channels == 4:
+        return source.transform(transform4, with_normals=True)
+    else:  # pragma: no cover
+        raise ValueError("The source lut should have 3 or 4 channels")
