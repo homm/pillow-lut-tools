@@ -281,7 +281,7 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
             points = numpy.stack((r, g, b), axis=-1).reshape(shape)
             points = _sample_lut_linear_numpy(source, points)
         else:
-            points = numpy.array(source.table, dtype=numpy.float32)
+            points = numpy.array(source.table, copy=False, dtype=numpy.float32)
             points = points.reshape(shape)
 
         points = _sample_lut_linear_numpy(lut, points)
