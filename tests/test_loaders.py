@@ -3,9 +3,9 @@ from __future__ import division, unicode_literals, absolute_import
 import os
 from tempfile import NamedTemporaryFile
 
+from pillow_lut import loaders
 from pillow_lut import (Image, ImageFilter, load_cube_file,
                         load_hald_image, identity_table)
-from pillow_lut import loaders
 
 from . import PillowTestCase, resource, disable_numpy
 
@@ -112,6 +112,23 @@ class TestLoadCubeFile(PillowTestCase):
         finally:
             os.unlink(f.name)
 
+    def test_application(self):
+        im = Image.new('RGB', (10, 10))
+
+        lut = load_cube_file([
+            "LUT_3D_SIZE 2",
+            "0    0 0.031",
+            "0.96 0 0.031",
+            "0    1 0.031",
+            "0.96 1 0.031",
+            "0    0 0.931",
+            "0.96 0 0.931",
+            "0    1 0.931",
+            "0.96 1 0.931",
+        ])
+        self.assertEqual(lut.table.__class__.__name__, 'list')
+        im.filter(lut)
+
 
 class TestLoadHaldImage(PillowTestCase):
     def test_wrong_size(self):
@@ -143,10 +160,21 @@ class TestLoadHaldImage(PillowTestCase):
         image = Image.open(resource('files', 'hald.4.png'))
 
         lut_numpy = load_hald_image(image)
-        self.assertEqual(tuple(lut_numpy.size), tuple(identity.size))
-        self.assertEqual(lut_numpy.table, identity.table)
+        self.assertEqualLuts(lut_numpy, identity)
 
         with disable_numpy(loaders):
             lut_pillow = load_hald_image(image)
-        self.assertEqual(tuple(lut_pillow.size), tuple(identity.size))
-        self.assertEqual(lut_pillow.table, identity.table)
+        self.assertEqualLuts(lut_pillow, identity)
+
+    def test_application(self):
+        im = Image.new('RGB', (10, 10))
+        hald = Image.open(resource('files', 'hald.4.png'))
+
+        lut_numpy = load_hald_image(hald)
+        self.assertEqual(lut_numpy.table.__class__.__name__, 'ndarray')
+        im.filter(lut_numpy)
+
+        with disable_numpy(loaders):
+            lut_native = load_hald_image(hald)
+        self.assertEqual(lut_native.table.__class__.__name__, 'list')
+        im.filter(lut_native)

@@ -77,16 +77,6 @@ def _yuv_to_rgb(y, u, v):
     return r, g, b
 
 
-def _alter_lut(self, callback):
-    index = 0
-    for b in range(self.size[2]):
-        for g in range(self.size[1]):
-            for r in range(self.size[0]):
-                values = callback(*self.table[index:index+3])
-                self.table[index:index+3] = values
-                index += 3
-
-
 def rgb_color_enhance(source,
                       brightness=0, exposure=0, contrast=0, warmth=0,
                       saturation=0, vibrance=0,
@@ -185,7 +175,7 @@ def rgb_color_enhance(source,
     if numpy and not hue:
         if source_is_lut:
             size = source.size
-            points = numpy.array(source.table, dtype=numpy.float32)
+            points = numpy.array(source.table, copy=False, dtype=numpy.float32)
             r = points[0::3]
             g = points[1::3]
             b = points[2::3]
@@ -249,7 +239,7 @@ def rgb_color_enhance(source,
             b = _linear_to_srgb_numpy(b)
 
         table = numpy.stack((r, g, b), axis=-1)
-        return cls(size, table.reshape(table.size))
+        return cls(size, table.reshape(table.size), _copy_table=False)
 
     def generate(r, g, b):
         if linear:
@@ -310,10 +300,7 @@ def rgb_color_enhance(source,
         return r, g, b
 
     if source_is_lut:
-        result = cls(source.size, source.table,
-                     channels=3, target_mode=source.mode)
-        _alter_lut(result, generate)
-        return result
+        return source.transform(generate)
     else:
         return cls.generate(source, generate)
 
@@ -335,7 +322,8 @@ def identity_table(size, target_mode=None, cls=ImageFilter.Color3DLUT):
         ].astype(numpy.float32)
 
         table = numpy.stack((r, g, b), axis=-1)
-        return cls(size, table.reshape(table.size), target_mode=target_mode)
+        return cls(size, table.reshape(table.size),
+                   target_mode=target_mode, _copy_table=False)
 
     return cls.generate(size, lambda r, g, b: (r, g, b),
                         target_mode=target_mode)

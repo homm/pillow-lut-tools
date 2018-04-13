@@ -99,9 +99,9 @@ def _points_shift_numpy(size, points, left, right):
     idx1D = index1D.astype(numpy.int32).clip(left, size1D - 1 - right)
     idx2D = index2D.astype(numpy.int32).clip(left, size2D - 1 - right)
     idx3D = index3D.astype(numpy.int32).clip(left, size3D - 1 - right)
-    shift1D = (index1D - idx1D).reshape(idx1D.shape[0], 1)
-    shift2D = (index2D - idx2D).reshape(idx2D.shape[0], 1)
-    shift3D = (index3D - idx3D).reshape(idx3D.shape[0], 1)
+    shift1D = numpy.subtract(index1D, idx1D, index1D).reshape(idx1D.shape[0], 1)
+    shift2D = numpy.subtract(index2D, idx2D, index2D).reshape(idx2D.shape[0], 1)
+    shift3D = numpy.subtract(index3D, idx3D, index3D).reshape(idx3D.shape[0], 1)
     idx = idx1D + idx2D * size1D + idx3D * size1D * size2D
     return idx, shift1D, shift2D, shift3D
 
@@ -111,7 +111,7 @@ def _sample_lut_linear_numpy(lut, points):
     s12D = s1D * s2D
 
     idx, shift1D, shift2D, shift3D = _points_shift_numpy(lut.size, points, 0, 1)
-    table = numpy.array(lut.table, dtype=numpy.float32)
+    table = numpy.array(lut.table, copy=False, dtype=numpy.float32)
     table = table.reshape(s1D * s2D * s3D, lut.channels)
 
     return _inter_linear(shift3D,
@@ -281,7 +281,7 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
             points = numpy.stack((r, g, b), axis=-1).reshape(shape)
             points = _sample_lut_linear_numpy(source, points)
         else:
-            points = numpy.array(source.table, dtype=numpy.float32)
+            points = numpy.array(source.table, copy=False, dtype=numpy.float32)
             points = points.reshape(shape)
 
         points = _sample_lut_linear_numpy(lut, points)
@@ -309,8 +309,9 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
                                  source.table[index + 1],
                                  source.table[index + 2])
                         index += 3
-                    table.append(sample_lut(lut, point))
+                    table.extend(sample_lut(lut, point))
 
     return cls((size1D, size2D, size3D), table,
-               channels=lut.channels, target_mode=lut.mode or source.mode)
+               channels=lut.channels, target_mode=lut.mode or source.mode,
+               _copy_table=False)
 
