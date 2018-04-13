@@ -1,7 +1,7 @@
 from __future__ import division, unicode_literals, absolute_import
 
-from pillow_lut import ImageFilter, rgb_color_enhance, identity_table
 from pillow_lut import generators
+from pillow_lut import ImageFilter, Image, rgb_color_enhance, identity_table
 
 from . import PillowTestCase, disable_numpy
 
@@ -212,7 +212,7 @@ class TestRgbColorEnhance(PillowTestCase):
         self.assertTrue(isinstance(lut, ImageFilter.Color3DLUT))
         self.assertNotEqualLutTables(lut, self.identity)
 
-    def test_correctness(self):
+    def test_numpy_correctness(self):
         lut_numpy = rgb_color_enhance(
             13, brightness=0.1, exposure=-0.2, contrast=0.1, warmth=0.5,
             saturation=0.1, vibrance=0.1, gamma=1.1, linear=True
@@ -224,6 +224,27 @@ class TestRgbColorEnhance(PillowTestCase):
             )
         self.assertAlmostEqualLuts(lut_numpy, lut_native, 10)
         self.assertNotEqualLutTables(lut_numpy, lut_native)
+
+    def test_application(self):
+        im = Image.new('RGB', (10, 10))
+
+        lut_numpy = rgb_color_enhance(5, saturation=0.5)
+        self.assertEqual(lut_numpy.table.__class__.__name__, 'ndarray')
+        im.filter(lut_numpy)
+
+        with disable_numpy(generators):
+            lut_native = rgb_color_enhance(5, saturation=0.5)
+        self.assertEqual(lut_native.table.__class__.__name__, 'list')
+        im.filter(lut_native)
+
+        lut_numpy = rgb_color_enhance(lut_native, saturation=0.5)
+        self.assertEqual(lut_numpy.table.__class__.__name__, 'ndarray')
+        im.filter(lut_numpy)
+
+        with disable_numpy(generators):
+            lut_native = rgb_color_enhance(lut_numpy, saturation=0.5)
+        self.assertEqual(lut_native.table.__class__.__name__, 'list')
+        im.filter(lut_native)
 
 
 class TestIdentityTable(PillowTestCase):
@@ -237,3 +258,15 @@ class TestIdentityTable(PillowTestCase):
         with disable_numpy(generators):
             lut_native = identity_table((4, 5, 6))
         self.assertEqualLuts(lut_native, lut_ref)
+
+    def test_application(self):
+        im = Image.new('RGB', (10, 10))
+
+        lut_numpy = identity_table(5)
+        self.assertEqual(lut_numpy.table.__class__.__name__, 'ndarray')
+        im.filter(lut_numpy)
+
+        with disable_numpy(generators):
+            lut_native = identity_table(5)
+        self.assertEqual(lut_native.table.__class__.__name__, 'list')
+        im.filter(lut_native)

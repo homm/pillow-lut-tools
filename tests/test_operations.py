@@ -2,7 +2,7 @@ from __future__ import division, unicode_literals, absolute_import
 
 import warnings
 
-from pillow_lut import operations
+from pillow_lut import operations, generators
 from pillow_lut import (ImageFilter, Image, identity_table, transform_lut,
                         sample_lut_linear, sample_lut_cubic)
 
@@ -282,3 +282,29 @@ class TestTransformLut(PillowTestCase):
                               interp=Image.CUBIC)
         linear = transform_lut(identity_table((4, 5, 5)), lut)
         self.assertNotEqualLutTables(cubic, linear)
+
+    def test_application(self):
+        im = Image.new('RGB', (10, 10))
+
+        lut_numpy = transform_lut(identity_table(5), identity_table(5))
+        self.assertEqual(lut_numpy.table.__class__.__name__, 'ndarray')
+        im.filter(lut_numpy)
+
+        with disable_numpy(operations):
+            lut_native = transform_lut(identity_table(5), identity_table(5))
+        self.assertEqual(lut_native.table.__class__.__name__, 'list')
+        im.filter(lut_native)
+
+        with disable_numpy(generators):
+            args = identity_table(5), identity_table(5)
+        self.assertEqual(args[0].table.__class__.__name__, 'list')
+        lut_numpy = transform_lut(*args)
+        self.assertEqual(lut_numpy.table.__class__.__name__, 'ndarray')
+        im.filter(lut_numpy)
+
+        args = identity_table(5), identity_table(5)
+        self.assertEqual(args[0].table.__class__.__name__, 'ndarray')
+        with disable_numpy(operations):
+            lut_native = transform_lut(*args)
+        self.assertEqual(lut_native.table.__class__.__name__, 'list')
+        im.filter(lut_native)
