@@ -237,6 +237,54 @@ def sample_lut_cubic(lut, point):
     )
 
 
+def resize_lut(source, target_size=None, interp=Image.LINEAR,
+               cls=ImageFilter.Color3DLUT):
+    size1D, size2D, size3D = cls._check_size(target_size)
+    if interp == Image.LINEAR:
+        sample_lut = sample_lut_linear
+    elif interp == Image.CUBIC:
+        sample_lut = sample_lut_cubic
+    else:
+        raise ValueError(
+            "Only Image.LINEAR and Image.CUBIC interpolations are supported")
+    if interp == Image.CUBIC and (size1D < 4 or size2D < 4 or size3D < 4):
+        sample_lut = sample_lut_linear
+        interp = Image.LINEAR
+        warnings.warn("Cubic interpolation requires a table of size "
+                      "4 in all dimensions at least. Switching to linear.")
+
+    if numpy and interp == Image.LINEAR:
+        shape = (size1D * size2D * size3D, source.channels)
+        b, g, r = numpy.mgrid[
+            0 : 1 : size3D*1j,
+            0 : 1 : size2D*1j,
+            0 : 1 : size1D*1j
+        ].astype(numpy.float32)
+        points = numpy.stack((r, g, b), axis=-1).reshape(shape)
+        points = _sample_lut_linear_numpy(source, points)
+
+        table = points.reshape(points.size)
+
+    else:  # Native implementation
+        if (
+            (interp == Image.CUBIC and size1D * size2D * size3D >= 216) or
+            (interp == Image.LINEAR and size1D * size2D * size3D >= 1000)
+        ):
+            warnings.warn("You are using not accelerated python version "
+                          "of resize_lut, which could be fairly slow.")
+
+        table = []
+        for b in range(size3D):
+            for g in range(size2D):
+                for r in range(size1D):
+                    point = (r / (size1D-1), g / (size2D-1), b / (size3D-1))
+                    table.extend(sample_lut(source, point))
+
+    return cls((size1D, size2D, size3D), table,
+               channels=source.channels, target_mode=source.mode,
+               _copy_table=False)
+
+
 def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
                   cls=ImageFilter.Color3DLUT):
     """Transforms given lookup table using another table and returns the result.
@@ -266,7 +314,7 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
 
     if interp == Image.CUBIC and (size1D < 4 or size2D < 4 or size3D < 4):
         sample_lut = sample_lut_linear
-        interp=Image.LINEAR
+        interp = Image.LINEAR
         warnings.warn("Cubic interpolation requires a table of size "
                       "4 in all dimensions at least. Switching to linear.")
 
@@ -301,9 +349,8 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
             for g in range(size2D):
                 for r in range(size1D):
                     if target_size:
-                        point = sample_lut(source, (r / float(size1D-1),
-                                                    g / float(size2D-1),
-                                                    b / float(size3D-1)))
+                        point = (r / (size1D-1), g / (size2D-1), b / (size3D-1))
+                        point = sample_lut(source, point)
                     else:
                         point = (source.table[index + 0],
                                  source.table[index + 1],
