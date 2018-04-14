@@ -1,4 +1,5 @@
 import unittest
+import warnings
 from os.path import join, abspath, dirname
 from contextlib import contextmanager
 
@@ -23,6 +24,18 @@ def resource(*x):
 
 
 class PillowTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls._catch_warnings = warnings.catch_warnings(record=True)
+        cls._catch_warnings.__enter__()
+        warnings.simplefilter('always')
+        super(PillowTestCase, cls).setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super(PillowTestCase, cls).tearDownClass()
+        cls._catch_warnings.__exit__()
+
     def assertImageEqual(self, a, b, msg=None):
         self.assertEqual(
             a.mode, b.mode,

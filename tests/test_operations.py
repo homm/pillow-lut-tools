@@ -168,20 +168,18 @@ class TestTransformLut(PillowTestCase):
         self.assertEqual(result.mode, 'RGB')
         self.assertEqual(result.channels, 3)
 
+    def test_warnings_args(self):
         with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always')
             transform_lut(identity_table(5), identity_table(10))
             self.assertEqual(w, [])
 
         with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always')
             with disable_numpy(operations):
                 transform_lut(identity_table(10), identity_table(5))
             self.assertEqual(len(w), 1)
             self.assertIn('fairly slow', "{}".format(w[0].message))
 
         with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always')
             transform_lut(identity_table(6), identity_table(5),
                           interp=Image.CUBIC)
             self.assertEqual(len(w), 1)
@@ -269,7 +267,6 @@ class TestTransformLut(PillowTestCase):
             lambda r, g, b: (r**1.5, g**1.5, b**1.5))
 
         with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always')
             cubic = transform_lut(identity_table((3, 5, 5)), lut,
                                   interp=Image.CUBIC)
             self.assertEqual(len(w), 1)
