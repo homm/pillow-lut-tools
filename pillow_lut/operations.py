@@ -237,8 +237,14 @@ def sample_lut_cubic(lut, point):
     )
 
 
-def resize_lut(source, target_size=None, interp=Image.LINEAR,
+def resize_lut(source, target_size, interp=Image.LINEAR,
                cls=ImageFilter.Color3DLUT):
+    """
+    :param source: Source lookup table, ``ImageFilter.Color3DLUT`` object.
+    :param target_size: Size of the resulting lookup table.
+    :param interp: Interpolation type, ``Image.LINEAR`` or ``Image.CUBIC``.
+                   Linear is default. Cubic is dramatically slower.
+    """
     size1D, size2D, size3D = cls._check_size(target_size)
     if interp == Image.LINEAR:
         sample_lut = sample_lut_linear
@@ -266,13 +272,6 @@ def resize_lut(source, target_size=None, interp=Image.LINEAR,
         table = points.reshape(points.size)
 
     else:  # Native implementation
-        if (
-            (interp == Image.CUBIC and size1D * size2D * size3D >= 216) or
-            (interp == Image.LINEAR and size1D * size2D * size3D >= 1000)
-        ):
-            warnings.warn("You are using not accelerated python version "
-                          "of resize_lut, which could be fairly slow.")
-
         table = []
         for b in range(size3D):
             for g in range(size2D):
@@ -293,9 +292,10 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
 
     :param source: Source lookup table, ``ImageFilter.Color3DLUT`` object.
     :param lut: Applied lookup table, ``ImageFilter.Color3DLUT`` object.
-    :param interp: Interpolation type.
-                   Could be ``Image.LINEAR`` or ``Image.CUBIC``.
-                   Linear is default. Cubic is generally 10 times slower.
+    :param target_size: Optional size of the resulting lookup table.
+                        By default, size of the ``source`` will be used.
+    :param interp: Interpolation type, ``Image.LINEAR`` or ``Image.CUBIC``.
+                   Linear is default. Cubic is dramatically slower.
     """
     if source.channels != 3:
         raise ValueError("Can transform only 3-channel cubes")
@@ -336,13 +336,6 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
         table = points.reshape(points.size)
 
     else:  # Native implementation
-        if (
-            (interp == Image.CUBIC and size1D * size2D * size3D >= 216) or
-            (interp == Image.LINEAR and size1D * size2D * size3D >= 1000)
-        ):
-            warnings.warn("You are using not accelerated python version "
-                          "of transform_lut, which could be fairly slow.")
-
         table = []
         index = 0
         for b in range(size3D):
@@ -364,6 +357,7 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
 
 
 def emphasize_lut(source, scale):
+
     if not isinstance(scale, (tuple, list)):
         scale = (scale, scale, scale)
 
@@ -387,19 +381,15 @@ def emphasize_lut(source, scale):
         )
 
     def transform3(sr, sg, sb, r, g, b):
-        return (
-            sr + (r - sr) * scale[0],
-            sg + (g - sg) * scale[1],
-            sb + (b - sb) * scale[2],
-        )
+        return (sr + (r - sr) * scale[0],
+                sg + (g - sg) * scale[1],
+                sb + (b - sb) * scale[2])
 
     def transform4(sr, sg, sb, r, g, b, x):
-        return (
-            sr + (r - sr) * scale[0],
-            sg + (g - sg) * scale[1],
-            sb + (b - sb) * scale[2],
-            x,
-        )
+        return (sr + (r - sr) * scale[0],
+                sg + (g - sg) * scale[1],
+                sb + (b - sb) * scale[2],
+                x)
 
     if source.channels == 3:
         return source.transform(transform3, with_normals=True)

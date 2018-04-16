@@ -168,23 +168,6 @@ class TestTransformLut(PillowTestCase):
         self.assertEqual(result.mode, 'RGB')
         self.assertEqual(result.channels, 3)
 
-    def test_warnings_args(self):
-        with warnings.catch_warnings(record=True) as w:
-            transform_lut(identity_table(5), identity_table(10))
-            self.assertEqual(w, [])
-
-        with warnings.catch_warnings(record=True) as w:
-            with disable_numpy(operations):
-                transform_lut(identity_table(10), identity_table(5))
-            self.assertEqual(len(w), 1)
-            self.assertIn('fairly slow', "{}".format(w[0].message))
-
-        with warnings.catch_warnings(record=True) as w:
-            transform_lut(identity_table(6), identity_table(5),
-                          interp=Image.CUBIC)
-            self.assertEqual(len(w), 1)
-            self.assertIn('fairly slow', "{}".format(w[0].message))
-
     def test_identity_linear(self):
         identity9 = identity_table(9)
         lut7 = ImageFilter.Color3DLUT.generate(7,
