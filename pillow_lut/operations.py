@@ -253,7 +253,7 @@ def resize_lut(source, target_size, interp=Image.LINEAR,
     else:
         raise ValueError(
             "Only Image.LINEAR and Image.CUBIC interpolations are supported")
-    if interp == Image.CUBIC and (size1D < 4 or size2D < 4 or size3D < 4):
+    if interp == Image.CUBIC and any(s < 4 for s in source.size):
         sample_lut = sample_lut_linear
         interp = Image.LINEAR
         warnings.warn("Cubic interpolation requires a table of size "
@@ -313,9 +313,9 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
         size1D, size2D, size3D = source.size
 
     if interp == Image.CUBIC:
-        if any(s < 4 for s in lut.size) or (
-            target_size and any(s < 4 for s in source.size)
-        ):
+        small_lut = any(s < 4 for s in lut.size)
+        small_source = any(s < 4 for s in source.size)
+        if small_lut or (target_size and small_source):
             sample_lut = sample_lut_linear
             interp = Image.LINEAR
             warnings.warn("Cubic interpolation requires a table of size "
