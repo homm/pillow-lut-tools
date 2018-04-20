@@ -260,7 +260,7 @@ def resize_lut(source, target_size, interp=Image.LINEAR,
                       "4 in all dimensions at least. Switching to linear.")
 
     if numpy and interp == Image.LINEAR:
-        shape = (size1D * size2D * size3D, source.channels)
+        shape = (size1D * size2D * size3D, 3)
         b, g, r = numpy.mgrid[
             0 : 1 : size3D*1j,
             0 : 1 : size2D*1j,
@@ -312,11 +312,14 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
     else:
         size1D, size2D, size3D = source.size
 
-    if interp == Image.CUBIC and (size1D < 4 or size2D < 4 or size3D < 4):
-        sample_lut = sample_lut_linear
-        interp = Image.LINEAR
-        warnings.warn("Cubic interpolation requires a table of size "
-                      "4 in all dimensions at least. Switching to linear.")
+    if interp == Image.CUBIC:
+        if any(s < 4 for s in lut.size) or (
+            target_size and any(s < 4 for s in source.size)
+        ):
+            sample_lut = sample_lut_linear
+            interp = Image.LINEAR
+            warnings.warn("Cubic interpolation requires a table of size "
+                          "4 in all dimensions at least. Switching to linear.")
 
     if numpy and interp == Image.LINEAR:
         shape = (size1D * size2D * size3D, source.channels)
