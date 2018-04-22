@@ -22,7 +22,9 @@ and used in many graphics and video editors.
 .. autofunction:: pillow_lut.rgb_color_enhance
 .. autofunction:: pillow_lut.sample_lut_linear
 .. autofunction:: pillow_lut.sample_lut_cubic
+.. autofunction:: pillow_lut.resize_lut
 .. autofunction:: pillow_lut.transform_lut
+.. autofunction:: pillow_lut.amplify_lut
 
 
 .. _Pillow: https://pillow.readthedocs.io/
