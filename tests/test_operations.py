@@ -434,6 +434,18 @@ class TestAmplifyLut(PillowTestCase):
         self.assertAlmostEqualLuts(res_numpy, lut_2x)
         self.assertAlmostEqualLuts(res_native, res_numpy)
 
+    def test_correctness_4c(self):
+        lut = ImageFilter.Color3DLUT.generate(5, channels=4,
+            callback=lambda r, g, b: (r+0.1, g*1.1, b-0.1, r+g+b))
+        lut_2x = ImageFilter.Color3DLUT.generate(5, channels=4,
+            callback=lambda r, g, b: (r+0.2, g*1.2, b-0.2, r+g+b))
+
+        res_numpy = amplify_lut(lut, 2)
+        with disable_numpy(operations):
+            res_native = amplify_lut(lut, 2)
+        self.assertAlmostEqualLuts(res_numpy, lut_2x)
+        self.assertAlmostEqualLuts(res_native, res_numpy)
+
     def test_application(self):
         im = Image.new('RGB', (10, 10))
 
