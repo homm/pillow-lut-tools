@@ -2,9 +2,9 @@ from __future__ import division, unicode_literals, absolute_import
 
 import warnings
 
-from pillow_lut import operations, generators
-from pillow_lut import (ImageFilter, Image, identity_table, transform_lut,
-                        sample_lut_linear, sample_lut_cubic, resize_lut)
+from pillow_lut import operations, generators, ImageFilter, Image
+from pillow_lut import (identity_table, transform_lut, resize_lut, amplify_lut,
+                        sample_lut_linear, sample_lut_cubic)
 
 from . import PillowTestCase, disable_numpy
 
@@ -292,8 +292,8 @@ class TestTransformLut(PillowTestCase):
         result = transform_lut(self.lut7_in, self.identity9, interp=Image.CUBIC)
         self.assertAlmostEqualLuts(result, self.lut7_in)
 
-        result = transform_lut(self.identity9, self.lut7_in, interp=Image.CUBIC)
-        self.assertAlmostEqualLuts(result, self.lut9_in, 5)
+        result = transform_lut(self.identity7, self.lut9_in, interp=Image.CUBIC)
+        self.assertAlmostEqualLuts(result, self.lut7_in, 7)
 
     def test_correctness_linear(self):
         res_numpy = transform_lut(self.lut7_in, self.lut7_out)
@@ -384,5 +384,78 @@ class TestTransformLut(PillowTestCase):
         self.assertEqual(args[0].table.__class__.__name__, 'ndarray')
         with disable_numpy(operations):
             lut_native = transform_lut(*args)
+        self.assertEqual(lut_native.table.__class__.__name__, 'list')
+        im.filter(lut_native)
+
+
+class TestAmplifyLut(PillowTestCase):
+    lut5_4c = ImageFilter.Color3DLUT.generate(5, channels=4,
+        callback=lambda r, g, b: (r*r, g*g, b*b, 1.0))
+
+    def test_correct_args(self):
+        result = amplify_lut(identity_table((3, 4, 5)), -1)
+        self.assertEqual(tuple(result.size), (3, 4, 5))
+        self.assertEqual(result.channels, 3)
+
+        result = amplify_lut(self.lut5_4c, 5)
+        self.assertEqual(tuple(result.size), (5, 5, 5))
+        self.assertEqual(result.channels, 4)
+
+    def test_correctness(self):
+        lut = ImageFilter.Color3DLUT.generate(5,
+            callback=lambda r, g, b: (r+0.1, g*1.1, b-0.1))
+        lut_05x = ImageFilter.Color3DLUT.generate(5,
+            callback=lambda r, g, b: (r+0.05, g*1.05, b-0.05))
+        lut_2x = ImageFilter.Color3DLUT.generate(5,
+            callback=lambda r, g, b: (r+0.2, g*1.2, b-0.2))
+        identity = identity_table(5)
+
+        res_numpy = amplify_lut(lut, 1.0)
+        with disable_numpy(operations):
+            res_native = amplify_lut(lut, 1.0)
+        self.assertAlmostEqualLuts(res_numpy, lut)
+        self.assertAlmostEqualLuts(res_native, res_numpy)
+
+        res_numpy = amplify_lut(lut, 0)
+        with disable_numpy(operations):
+            res_native = amplify_lut(lut, 0)
+        self.assertEqualLuts(res_numpy, identity)
+        self.assertEqualLuts(res_native, res_numpy)
+
+        res_numpy = amplify_lut(lut, 0.5)
+        with disable_numpy(operations):
+            res_native = amplify_lut(lut, 0.5)
+        self.assertAlmostEqualLuts(res_numpy, lut_05x)
+        self.assertAlmostEqualLuts(res_native, res_numpy)
+
+        res_numpy = amplify_lut(lut, 2)
+        with disable_numpy(operations):
+            res_native = amplify_lut(lut, 2)
+        self.assertAlmostEqualLuts(res_numpy, lut_2x)
+        self.assertAlmostEqualLuts(res_native, res_numpy)
+
+    def test_application(self):
+        im = Image.new('RGB', (10, 10))
+
+        lut_numpy = amplify_lut(identity_table(5), 2.0)
+        self.assertEqual(lut_numpy.table.__class__.__name__, 'ndarray')
+        im.filter(lut_numpy)
+
+        with disable_numpy(operations):
+            lut_native = amplify_lut(identity_table(5), 2.0)
+        self.assertEqual(lut_native.table.__class__.__name__, 'list')
+        im.filter(lut_native)
+
+        with disable_numpy(generators):
+            args = identity_table(5)
+        self.assertEqual(args.table.__class__.__name__, 'list')
+        lut_numpy = amplify_lut(args, 2.0)
+        self.assertEqual(lut_numpy.table.__class__.__name__, 'ndarray')
+        im.filter(lut_numpy)
+
+        args = identity_table(5)
+        self.assertEqual(args.table.__class__.__name__, 'ndarray')
+        with disable_numpy(operations):
+            lut_native = amplify_lut(args, 2.0)
         self.assertEqual(lut_native.table.__class__.__name__, 'list')
         im.filter(lut_native)

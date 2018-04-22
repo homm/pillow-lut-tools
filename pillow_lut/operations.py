@@ -239,7 +239,8 @@ def sample_lut_cubic(lut, point):
 
 def resize_lut(source, target_size, interp=Image.LINEAR,
                cls=ImageFilter.Color3DLUT):
-    """
+    """Resizes given lookup table to new size using interpolation.
+
     :param source: Source lookup table, ``ImageFilter.Color3DLUT`` object.
     :param target_size: Size of the resulting lookup table.
     :param interp: Interpolation type, ``Image.LINEAR`` or ``Image.CUBIC``.
@@ -359,8 +360,14 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
                _copy_table=False)
 
 
-def emphasize_lut(source, scale):
+def amplify_lut(source, scale):
+    """Amplifies given lookup table compared to identity table the same size.
+    For 4-channel lookup tables the fourth channel will be unschanged.
 
+    :param source: Source lookup table, ``ImageFilter.Color3DLUT`` object.
+    :param scale: One or three floats which define the amplification strength.
+                  1.0 mean no changes, 0.0 transforms to identity table.
+    """
     if not isinstance(scale, (tuple, list)):
         scale = (scale, scale, scale)
 
