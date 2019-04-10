@@ -7,6 +7,10 @@ You will need to [install Pillow][install Pillow] or
 [Pillow-SIMD][install Pillow-SIMD] to work. None of this packages
 is included as a dependency to simplify installation of another.
 
+## Documentation
+
+https://pillow-lut-tools.readthedocs.io/en/latest/
+
 ## Sample code
 
 ```python
