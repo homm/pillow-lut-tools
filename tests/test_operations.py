@@ -169,7 +169,7 @@ class TestResizeLut(PillowTestCase):
         self.assertAlmostEqualLuts(res_native, res_numpy)
 
     def test_correctness_cubic(self):
-        result = resize_lut(self.lut9_in, 7, interp=Image.CUBIC)
+        result = resize_lut(self.lut9_in, 7, interp=Image.BICUBIC)
         self.assertAlmostEqualLuts(result, self.lut7_in, 7)
 
     def test_fallback_to_linear(self):
@@ -179,15 +179,15 @@ class TestResizeLut(PillowTestCase):
             lambda r, g, b: (r**1.5, g**1.5, b**1.5))
 
         with warnings.catch_warnings(record=True) as w:
-            cubic = resize_lut(lut4, (5, 5, 3), interp=Image.CUBIC)
+            cubic = resize_lut(lut4, (5, 5, 3), interp=Image.BICUBIC)
             self.assertEqual(len(w), 0)
         linear = resize_lut(lut4, (5, 5, 3))
         self.assertNotEqualLutTables(cubic, linear)
 
         with warnings.catch_warnings(record=True) as w:
-            cubic = resize_lut(lut3, (5, 5, 4), interp=Image.CUBIC)
+            cubic = resize_lut(lut3, (5, 5, 4), interp=Image.BICUBIC)
             self.assertEqual(len(w), 1)
-            self.assertIn('Cubic interpolation', "{}".format(w[0].message))
+            self.assertIn('BICUBIC interpolation', "{}".format(w[0].message))
         linear = resize_lut(lut3, (5, 5, 4))
         self.assertEqualLuts(cubic, linear)
 
@@ -289,10 +289,10 @@ class TestTransformLut(PillowTestCase):
         self.assertAlmostEqualLuts(res_native, res_numpy)
 
     def test_identity_cubic(self):
-        result = transform_lut(self.lut7_in, self.identity9, interp=Image.CUBIC)
+        result = transform_lut(self.lut7_in, self.identity9, interp=Image.BICUBIC)
         self.assertAlmostEqualLuts(result, self.lut7_in)
 
-        result = transform_lut(self.identity7, self.lut9_in, interp=Image.CUBIC)
+        result = transform_lut(self.identity7, self.lut9_in, interp=Image.BICUBIC)
         self.assertAlmostEqualLuts(result, self.lut7_in, 7)
 
     def test_correctness_linear(self):
@@ -311,10 +311,10 @@ class TestTransformLut(PillowTestCase):
         self.assertAlmostEqualLuts(res_native, res_numpy)
 
     def test_correctness_cubic(self):
-        result = transform_lut(self.lut7_in, self.lut7_out, interp=Image.CUBIC)
+        result = transform_lut(self.lut7_in, self.lut7_out, interp=Image.BICUBIC)
         self.assertAlmostEqualLuts(result, self.identity7, 4)
 
-        result = transform_lut(self.lut7_out, self.lut7_in, interp=Image.CUBIC)
+        result = transform_lut(self.lut7_out, self.lut7_in, interp=Image.BICUBIC)
         self.assertAlmostEqualLuts(result, self.identity7, 7)
 
     def test_target_size_correctness_linear(self):
@@ -328,7 +328,7 @@ class TestTransformLut(PillowTestCase):
 
     def test_target_size_correctness_cubic(self):
         result = transform_lut(self.lut7_out, self.lut7_in,
-                               target_size=9, interp=Image.CUBIC)
+                               target_size=9, interp=Image.BICUBIC)
         self.assertAlmostEqualLuts(result, self.identity9, 4)
 
     def test_fallback_to_linear(self):
@@ -339,14 +339,14 @@ class TestTransformLut(PillowTestCase):
 
         with warnings.catch_warnings(record=True) as w:
             cubic = transform_lut(identity_table((5, 5, 3)), lut4,
-                                  interp=Image.CUBIC)
+                                  interp=Image.BICUBIC)
             self.assertEqual(len(w), 0)
         linear = transform_lut(identity_table((5, 5, 3)), lut4)
         self.assertNotEqualLutTables(cubic, linear)
 
         with warnings.catch_warnings(record=True) as w:
             cubic = transform_lut(identity_table((5, 5, 4)), lut3,
-                                  interp=Image.CUBIC)
+                                  interp=Image.BICUBIC)
             self.assertEqual(len(w), 1)
             self.assertIn('Cubic interpolation', "{}".format(w[0].message))
         linear = transform_lut(identity_table((5, 5, 4)), lut3)
@@ -354,7 +354,7 @@ class TestTransformLut(PillowTestCase):
 
         with warnings.catch_warnings(record=True) as w:
             cubic = transform_lut(identity_table((5, 5, 3)), lut4,
-                                  target_size=(5, 5, 4), interp=Image.CUBIC)
+                                  target_size=(5, 5, 4), interp=Image.BICUBIC)
             self.assertEqual(len(w), 1)
             self.assertIn('Cubic interpolation', "{}".format(w[0].message))
         linear = transform_lut(identity_table((5, 5, 3)), lut4,
