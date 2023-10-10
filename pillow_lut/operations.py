@@ -237,30 +237,30 @@ def sample_lut_cubic(lut, point):
     )
 
 
-def resize_lut(source, target_size, interp=Image.LINEAR,
+def resize_lut(source, target_size, interp=Image.BILINEAR,
                cls=ImageFilter.Color3DLUT):
     """Resizes given lookup table to new size using interpolation.
 
     :param source: Source lookup table, ``ImageFilter.Color3DLUT`` object.
     :param target_size: Size of the resulting lookup table.
-    :param interp: Interpolation type, ``Image.LINEAR`` or ``Image.CUBIC``.
+    :param interp: Interpolation type, ``Image.BILINEAR`` or ``Image.CUBIC``.
                    Linear is default. Cubic is dramatically slower.
     """
     size1D, size2D, size3D = cls._check_size(target_size)
-    if interp == Image.LINEAR:
+    if interp == Image.BILINEAR:
         sample_lut = sample_lut_linear
     elif interp == Image.CUBIC:
         sample_lut = sample_lut_cubic
     else:
         raise ValueError(
-            "Only Image.LINEAR and Image.CUBIC interpolations are supported")
+            "Only Image.BILINEAR and Image.CUBIC interpolations are supported")
     if interp == Image.CUBIC and any(s < 4 for s in source.size):
         sample_lut = sample_lut_linear
-        interp = Image.LINEAR
+        interp = Image.BILINEAR
         warnings.warn("Cubic interpolation requires a table of size "
                       "4 in all dimensions at least. Switching to linear.")
 
-    if numpy and interp == Image.LINEAR:
+    if numpy and interp == Image.BILINEAR:
         shape = (size1D * size2D * size3D, 3)
         b, g, r = numpy.mgrid[
             0 : 1 : size3D*1j,
@@ -285,7 +285,7 @@ def resize_lut(source, target_size, interp=Image.LINEAR,
                _copy_table=False)
 
 
-def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
+def transform_lut(source, lut, target_size=None, interp=Image.BILINEAR,
                   cls=ImageFilter.Color3DLUT):
     """Transforms given lookup table using another table and returns the result.
     Sizes of the tables do not have to be the same. Moreover,
@@ -295,18 +295,18 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
     :param lut: Applied lookup table, ``ImageFilter.Color3DLUT`` object.
     :param target_size: Optional size of the resulting lookup table.
                         By default, size of the ``source`` will be used.
-    :param interp: Interpolation type, ``Image.LINEAR`` or ``Image.CUBIC``.
+    :param interp: Interpolation type, ``Image.BILINEAR`` or ``Image.CUBIC``.
                    Linear is default. Cubic is dramatically slower.
     """
     if source.channels != 3:
         raise ValueError("Can transform only 3-channel cubes")
-    if interp == Image.LINEAR:
+    if interp == Image.BILINEAR:
         sample_lut = sample_lut_linear
     elif interp == Image.CUBIC:
         sample_lut = sample_lut_cubic
     else:
         raise ValueError(
-            "Only Image.LINEAR and Image.CUBIC interpolations are supported")
+            "Only Image.BILINEAR and Image.CUBIC interpolations are supported")
 
     if target_size:
         size1D, size2D, size3D = cls._check_size(target_size)
@@ -318,11 +318,11 @@ def transform_lut(source, lut, target_size=None, interp=Image.LINEAR,
         small_source = any(s < 4 for s in source.size)
         if small_lut or (target_size and small_source):
             sample_lut = sample_lut_linear
-            interp = Image.LINEAR
+            interp = Image.BILINEAR
             warnings.warn("Cubic interpolation requires a table of size "
                           "4 in all dimensions at least. Switching to linear.")
 
-    if numpy and interp == Image.LINEAR:
+    if numpy and interp == Image.BILINEAR:
         shape = (size1D * size2D * size3D, source.channels)
         if target_size:
             b, g, r = numpy.mgrid[
