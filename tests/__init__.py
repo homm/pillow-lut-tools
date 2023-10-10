@@ -56,7 +56,8 @@ class PillowTestCase(unittest.TestCase):
             diff = 20
         diff = 1.0 / (1 << diff)
 
-        diffs = numpy.abs(numpy.nan_to_num(left / right - 1.0))
+        with numpy.errstate(divide='ignore', invalid='ignore'):
+            diffs = numpy.abs(numpy.nan_to_num(left / right - 1.0))
         if diffs.max() <= diff:
             return
 

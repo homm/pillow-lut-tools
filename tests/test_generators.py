@@ -44,63 +44,63 @@ class TestRgbColorEnhance(PillowTestCase):
     def test_wrong_args(self):
         lut_4c = ImageFilter.Color3DLUT.generate(
             3, channels=4, callback=lambda a, b, c: (a, b, c, 1))
-        with self.assertRaisesRegexp(ValueError, "3-channels table"):
+        with self.assertRaisesRegex(ValueError, "3-channels table"):
             rgb_color_enhance(lut_4c)
-        with self.assertRaisesRegexp(ValueError, "Size should be in"):
+        with self.assertRaisesRegex(ValueError, "Size should be in"):
             rgb_color_enhance(0)
-        with self.assertRaisesRegexp(ValueError, "Size should be in"):
+        with self.assertRaisesRegex(ValueError, "Size should be in"):
             rgb_color_enhance(66)
 
-        with self.assertRaisesRegexp(ValueError, "Brightness should be"):
+        with self.assertRaisesRegex(ValueError, "Brightness should be"):
             rgb_color_enhance(3, brightness=-1.1)
-        with self.assertRaisesRegexp(ValueError, "Brightness should be"):
+        with self.assertRaisesRegex(ValueError, "Brightness should be"):
             rgb_color_enhance(3, brightness=1.1)
-        with self.assertRaisesRegexp(ValueError, "Brightness should be"):
+        with self.assertRaisesRegex(ValueError, "Brightness should be"):
             rgb_color_enhance(3, brightness=(0.5, 0.5, 1.1))
 
-        with self.assertRaisesRegexp(ValueError, "Exposure should be"):
+        with self.assertRaisesRegex(ValueError, "Exposure should be"):
             rgb_color_enhance(3, exposure=-5.1)
-        with self.assertRaisesRegexp(ValueError, "Exposure should be"):
+        with self.assertRaisesRegex(ValueError, "Exposure should be"):
             rgb_color_enhance(3, exposure=5.1)
-        with self.assertRaisesRegexp(ValueError, "Exposure should be"):
+        with self.assertRaisesRegex(ValueError, "Exposure should be"):
             rgb_color_enhance(3, exposure=(0.5, 0.5, 5.1))
 
-        with self.assertRaisesRegexp(ValueError, "Contrast should be"):
+        with self.assertRaisesRegex(ValueError, "Contrast should be"):
             rgb_color_enhance(3, contrast=-1.1)
-        with self.assertRaisesRegexp(ValueError, "Contrast should be"):
+        with self.assertRaisesRegex(ValueError, "Contrast should be"):
             rgb_color_enhance(3, contrast=5.1)
-        with self.assertRaisesRegexp(ValueError, "Contrast should be"):
+        with self.assertRaisesRegex(ValueError, "Contrast should be"):
             rgb_color_enhance(3, contrast=(0.5, 0.5, 5.1))
 
-        with self.assertRaisesRegexp(ValueError, "Warmth should be"):
+        with self.assertRaisesRegex(ValueError, "Warmth should be"):
             rgb_color_enhance(3, warmth=-1.1)
-        with self.assertRaisesRegexp(ValueError, "Warmth should be"):
+        with self.assertRaisesRegex(ValueError, "Warmth should be"):
             rgb_color_enhance(3, warmth=1.1)
 
-        with self.assertRaisesRegexp(ValueError, "Saturation should be"):
+        with self.assertRaisesRegex(ValueError, "Saturation should be"):
             rgb_color_enhance(3, saturation=-1.1)
-        with self.assertRaisesRegexp(ValueError, "Saturation should be"):
+        with self.assertRaisesRegex(ValueError, "Saturation should be"):
             rgb_color_enhance(3, saturation=5.1)
-        with self.assertRaisesRegexp(ValueError, "Saturation should be"):
+        with self.assertRaisesRegex(ValueError, "Saturation should be"):
             rgb_color_enhance(3, saturation=(0.5, 0.5, 5.1))
 
-        with self.assertRaisesRegexp(ValueError, "Vibrance should be"):
+        with self.assertRaisesRegex(ValueError, "Vibrance should be"):
             rgb_color_enhance(3, vibrance=-1.1)
-        with self.assertRaisesRegexp(ValueError, "Vibrance should be"):
+        with self.assertRaisesRegex(ValueError, "Vibrance should be"):
             rgb_color_enhance(3, vibrance=5.1)
-        with self.assertRaisesRegexp(ValueError, "Vibrance should be"):
+        with self.assertRaisesRegex(ValueError, "Vibrance should be"):
             rgb_color_enhance(3, vibrance=(0.5, 0.5, 5.1))
 
-        with self.assertRaisesRegexp(ValueError, "Hue should be"):
+        with self.assertRaisesRegex(ValueError, "Hue should be"):
             rgb_color_enhance(3, hue=-0.1)
-        with self.assertRaisesRegexp(ValueError, "Hue should be"):
+        with self.assertRaisesRegex(ValueError, "Hue should be"):
             rgb_color_enhance(3, hue=1.1)
 
-        with self.assertRaisesRegexp(ValueError, "Gamma should be"):
+        with self.assertRaisesRegex(ValueError, "Gamma should be"):
             rgb_color_enhance(3, gamma=-0.1)
-        with self.assertRaisesRegexp(ValueError, "Gamma should be"):
+        with self.assertRaisesRegex(ValueError, "Gamma should be"):
             rgb_color_enhance(3, gamma=10.1)
-        with self.assertRaisesRegexp(ValueError, "Gamma should be"):
+        with self.assertRaisesRegex(ValueError, "Gamma should be"):
             rgb_color_enhance(3, gamma=(0.5, 0.5, 10.1))
 
     def test_correct_args(self):

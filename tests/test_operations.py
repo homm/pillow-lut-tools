@@ -67,7 +67,7 @@ class TestSampleLutLinear(PillowTestCase):
 class TestSampleLutCubic(PillowTestCase):
     def test_identity_2(self):
         identity = identity_table(2)
-        with self.assertRaisesRegexp(ValueError, "requires a table of size 4"):
+        with self.assertRaisesRegex(ValueError, "requires a table of size 4"):
             sample_lut_cubic(identity, (0, 0, 0))
 
     def test_identity_4(self):
@@ -138,7 +138,7 @@ class TestResizeLut(PillowTestCase):
         callback=lambda r, g, b: (r*r, g*g, b*b, 1.0))
 
     def test_wrong_args(self):
-        with self.assertRaisesRegexp(ValueError, "interpolations"):
+        with self.assertRaisesRegex(ValueError, "interpolations"):
             result = resize_lut(identity_table(4), 5,
                 interp=Image.NEAREST)
 
@@ -231,14 +231,14 @@ class TestTransformLut(PillowTestCase):
         callback=lambda r, g, b: (r*r, g*g, b*b, 1.0))
 
     def test_wrong_args(self):
-        with self.assertRaisesRegexp(ValueError, "only 3-channel cubes"):
+        with self.assertRaisesRegex(ValueError, "only 3-channel cubes"):
             result = transform_lut(self.lut5_4c, identity_table(3))
 
-        with self.assertRaisesRegexp(ValueError, "only 3-channel cubes"):
+        with self.assertRaisesRegex(ValueError, "only 3-channel cubes"):
             result = transform_lut(self.lut5_4c, identity_table(3),
                                    target_size=5)
 
-        with self.assertRaisesRegexp(ValueError, "interpolations"):
+        with self.assertRaisesRegex(ValueError, "interpolations"):
             result = transform_lut(identity_table(4), identity_table(4),
                 interp=Image.NEAREST)
 

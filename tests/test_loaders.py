@@ -56,7 +56,7 @@ class TestLoadCubeFile(PillowTestCase):
             0, 0, 0.031, 1,  0.96, 0, 0.031, 1,  0, 1, 0.031, 1])
 
     def test_errors(self):
-        with self.assertRaisesRegexp(ValueError, "No size found"):
+        with self.assertRaisesRegex(ValueError, "No size found"):
             lut = load_cube_file([
                 'TITLE "LUT name from file"',
             ] + [
@@ -64,7 +64,7 @@ class TestLoadCubeFile(PillowTestCase):
                 "0.96 0 0.031",
             ] * 3)
 
-        with self.assertRaisesRegexp(ValueError, "number of colors on line 3"):
+        with self.assertRaisesRegex(ValueError, "number of colors on line 3"):
             lut = load_cube_file([
                 'LUT_3D_SIZE 2',
             ] + [
@@ -72,7 +72,7 @@ class TestLoadCubeFile(PillowTestCase):
                 "0.96 0 0.031 1",
             ] * 3)
 
-        with self.assertRaisesRegexp(ValueError, "1D LUT cube files"):
+        with self.assertRaisesRegex(ValueError, "1D LUT cube files"):
             lut = load_cube_file([
                 'LUT_1D_SIZE 2',
             ] + [
@@ -80,7 +80,7 @@ class TestLoadCubeFile(PillowTestCase):
                 "0.96 0 0.031 1",
             ])
 
-        with self.assertRaisesRegexp(ValueError, "Not a number on line 2"):
+        with self.assertRaisesRegex(ValueError, "Not a number on line 2"):
             lut = load_cube_file([
                 'LUT_3D_SIZE 2',
             ] + [
@@ -132,13 +132,13 @@ class TestLoadCubeFile(PillowTestCase):
 
 class TestLoadHaldImage(PillowTestCase):
     def test_wrong_size(self):
-        with self.assertRaisesRegexp(ValueError, "should be a square"):
+        with self.assertRaisesRegex(ValueError, "should be a square"):
             load_hald_image(Image.new('RGB', (8, 10)))
 
-        with self.assertRaisesRegexp(ValueError, "Can't detect hald size"):
+        with self.assertRaisesRegex(ValueError, "Can't detect hald size"):
             load_hald_image(Image.new('RGB', (7, 7)))
 
-        with self.assertRaisesRegexp(ValueError, "Can't detect hald size"):
+        with self.assertRaisesRegex(ValueError, "Can't detect hald size"):
             load_hald_image(Image.new('RGB', (729, 729)))
 
     def test_simple_parse(self):
