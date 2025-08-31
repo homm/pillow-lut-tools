@@ -1,7 +1,7 @@
 import unittest
 import warnings
-from os.path import join, abspath, dirname
 from contextlib import contextmanager
+from os.path import abspath, dirname, join
 
 import numpy
 

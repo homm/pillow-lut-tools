@@ -1,10 +1,10 @@
-from __future__ import division, unicode_literals, absolute_import
-
 import warnings
 
-from pillow_lut import operations, generators, ImageFilter, Image
-from pillow_lut import (identity_table, transform_lut, resize_lut, amplify_lut,
-                        sample_lut_linear, sample_lut_cubic)
+from PIL import Image, ImageFilter
+
+from pillow_lut import (
+    amplify_lut, generators, identity_table, operations, resize_lut, sample_lut_cubic,
+    sample_lut_linear, transform_lut)
 
 from . import PillowTestCase, disable_numpy
 

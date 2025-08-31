@@ -1,7 +1,6 @@
-from __future__ import division, unicode_literals, absolute_import
+from PIL import Image, ImageFilter
 
-from pillow_lut import generators
-from pillow_lut import ImageFilter, Image, rgb_color_enhance, identity_table
+from pillow_lut import generators, identity_table, rgb_color_enhance
 
 from . import PillowTestCase, disable_numpy
 

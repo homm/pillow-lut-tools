@@ -2,6 +2,7 @@
 
 from setuptools import setup
 
+
 setup(
     name='pillow_lut',
     version='1.0.1',
@@ -24,5 +25,5 @@ setup(
         "Programming Language :: Python :: Implementation :: PyPy",
     ],
     packages=['pillow_lut'],
-    setup_requires=['nose>=1.3']
+    install_requires=['pillow>=5.2.0']
 )

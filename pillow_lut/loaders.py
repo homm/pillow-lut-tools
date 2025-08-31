@@ -1,9 +1,9 @@
-from __future__ import division, unicode_literals, absolute_import
-
 from itertools import chain
 
-from . import Image, ImageFilter, ImageMath
+from PIL import Image, ImageFilter, ImageMath
+
 from .utils import isPath
+
 
 try:
     import numpy

@@ -1,13 +1,11 @@
-from __future__ import division, unicode_literals, absolute_import
-
 import os
 from tempfile import NamedTemporaryFile
 
-from pillow_lut import loaders
-from pillow_lut import (Image, ImageFilter, load_cube_file,
-                        load_hald_image, identity_table)
+from PIL import Image, ImageFilter
 
-from . import PillowTestCase, resource, disable_numpy
+from pillow_lut import identity_table, load_cube_file, load_hald_image, loaders
+
+from . import PillowTestCase, disable_numpy, resource
 
 
 class TestLoadCubeFile(PillowTestCase):

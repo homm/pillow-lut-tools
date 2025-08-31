@@ -1,8 +1,6 @@
-from __future__ import division, unicode_literals, absolute_import
-
 import warnings
 
-from . import Image, ImageFilter
+from PIL import Image, ImageFilter
 
 
 try:

@@ -1,8 +1,7 @@
-from __future__ import division, unicode_literals, absolute_import
-
 from math import sin
 
-from . import ImageFilter
+from PIL import ImageFilter
+
 
 try:
     import numpy
