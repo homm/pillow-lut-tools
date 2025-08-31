@@ -112,13 +112,16 @@ def _sample_lut_linear_numpy(lut, points):
     table = numpy.array(lut.table, copy=False, dtype=numpy.float32)
     table = table.reshape(s1D * s2D * s3D, lut.channels)
 
-    return _inter_linear(shift3D,
-        _inter_linear(shift2D,
+    return _inter_linear(
+        shift3D,
+        _inter_linear(
+            shift2D,
             _inter_linear(shift1D, table[idx + 0], table[idx + 1]),
             _inter_linear(shift1D, table[idx + s1D + 0],
                           table[idx + s1D + 1]),
         ),
-        _inter_linear(shift2D,
+        _inter_linear(
+            shift2D,
             _inter_linear(shift1D, table[idx + s12D + 0],
                           table[idx + s12D + 1]),
             _inter_linear(shift1D, table[idx + s12D + s1D + 0],
@@ -143,18 +146,19 @@ def sample_lut_linear(lut, point):
     idx, shift1D, shift2D, shift3D = _point_shift(lut.size, point, 0, 1)
     idx *= c
 
-    return _inter_linear_vector(shift3D, c,
-        _inter_linear_vector(shift2D, c,
-            _inter_linear_table(shift1D, c, lut.table,
-                idx + 0, idx + c),
-            _inter_linear_table(shift1D, c, lut.table,
-                idx + s1Dc + 0, idx + s1Dc + c),
+    return _inter_linear_vector(
+        shift3D, c,
+        _inter_linear_vector(
+            shift2D, c,
+            _inter_linear_table(shift1D, c, lut.table, idx + 0, idx + c),
+            _inter_linear_table(shift1D, c, lut.table, idx + s1Dc + 0, idx + s1Dc + c),
         ),
-        _inter_linear_vector(shift2D, c,
+        _inter_linear_vector(
+            shift2D, c,
             _inter_linear_table(shift1D, c, lut.table,
-                idx + s12Dc + 0, idx + s12Dc + c),
+                                idx + s12Dc + 0, idx + s12Dc + c),
             _inter_linear_table(shift1D, c, lut.table,
-                idx + s12Dc + s1Dc + 0, idx + s12Dc + s1Dc + c),
+                                idx + s12Dc + s1Dc + 0, idx + s12Dc + s1Dc + c),
         ),
     )
 
@@ -182,53 +186,74 @@ def sample_lut_cubic(lut, point):
     idx, shift1D, shift2D, shift3D = _point_shift(lut.size, point, 1, 2)
     idx *= c
 
-    return _inter_cubic_vector(shift3D, c,
-        _inter_cubic_vector(shift2D, c,
-            _inter_cubic_table(shift1D, c, lut.table,
+    return _inter_cubic_vector(
+        shift3D, c,
+        _inter_cubic_vector(
+            shift2D, c,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx-s12Dc-s1Dc-c, idx-s12Dc-s1Dc+0,
                 idx-s12Dc-s1Dc+c, idx-s12Dc-s1Dc+c2),
-            _inter_cubic_table(shift1D, c, lut.table,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx-s12Dc-c, idx-s12Dc+0, idx-s12Dc+c, idx-s12Dc+c2),
-            _inter_cubic_table(shift1D, c, lut.table,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx-s12Dc+s1Dc-c, idx-s12Dc+s1Dc+0,
                 idx-s12Dc+s1Dc+c, idx-s12Dc+s1Dc+c2),
-            _inter_cubic_table(shift1D, c, lut.table,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx-s12Dc+s1Dc2-c, idx-s12Dc+s1Dc2+0,
                 idx-s12Dc+s1Dc2+c, idx-s12Dc+s1Dc2+c2),
         ),
-        _inter_cubic_vector(shift2D, c,
-            _inter_cubic_table(shift1D, c, lut.table,
+        _inter_cubic_vector(
+            shift2D, c,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx-s1Dc-c, idx-s1Dc+0, idx-s1Dc+c, idx-s1Dc+c2),
-            _inter_cubic_table(shift1D, c, lut.table,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx-c, idx+0, idx+c, idx+c2),
-            _inter_cubic_table(shift1D, c, lut.table,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx+s1Dc-c, idx+s1Dc+0, idx+s1Dc+c, idx+s1Dc+c2),
-            _inter_cubic_table(shift1D, c, lut.table,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx+s1Dc2-c, idx+s1Dc2+0, idx+s1Dc2+c, idx+s1Dc2+c2),
         ),
-        _inter_cubic_vector(shift2D, c,
-            _inter_cubic_table(shift1D, c, lut.table,
+        _inter_cubic_vector(
+            shift2D, c,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx+s12Dc-s1Dc-c, idx+s12Dc-s1Dc+0,
                 idx+s12Dc-s1Dc+c, idx+s12Dc-s1Dc+c2),
-            _inter_cubic_table(shift1D, c, lut.table,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx+s12Dc-c, idx+s12Dc+0, idx+s12Dc+c, idx+s12Dc+c2),
-            _inter_cubic_table(shift1D, c, lut.table,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx+s12Dc+s1Dc-c, idx+s12Dc+s1Dc+0,
                 idx+s12Dc+s1Dc+c, idx+s12Dc+s1Dc+c2),
-            _inter_cubic_table(shift1D, c, lut.table,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx+s12Dc+s1Dc2-c, idx+s12Dc+s1Dc2+0,
                 idx+s12Dc+s1Dc2+c, idx+s12Dc+s1Dc2+c2),
         ),
-        _inter_cubic_vector(shift2D, c,
-            _inter_cubic_table(shift1D, c, lut.table,
+        _inter_cubic_vector(
+            shift2D, c,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx+s12Dc2-s1Dc-c, idx+s12Dc2-s1Dc+0,
                 idx+s12Dc2-s1Dc+c, idx+s12Dc2-s1Dc+c2),
-            _inter_cubic_table(shift1D, c, lut.table,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx+s12Dc2-c, idx+s12Dc2+0, idx+s12Dc2+c, idx+s12Dc2+c2),
-            _inter_cubic_table(shift1D, c, lut.table,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx+s12Dc2+s1Dc-c, idx+s12Dc2+s1Dc+0,
                 idx+s12Dc2+s1Dc+c, idx+s12Dc2+s1Dc+c2),
-            _inter_cubic_table(shift1D, c, lut.table,
+            _inter_cubic_table(
+                shift1D, c, lut.table,
                 idx+s12Dc2+s1Dc2-c, idx+s12Dc2+s1Dc2+0,
                 idx+s12Dc2+s1Dc2+c, idx+s12Dc2+s1Dc2+c2),
         ),
@@ -261,9 +286,9 @@ def resize_lut(source, target_size, interp=Image.BILINEAR,
     if numpy and interp == Image.BILINEAR:
         shape = (size1D * size2D * size3D, 3)
         b, g, r = numpy.mgrid[
-            0 : 1 : size3D*1j,
-            0 : 1 : size2D*1j,
-            0 : 1 : size1D*1j
+            0:1:size3D*1j,
+            0:1:size2D*1j,
+            0:1:size1D*1j
         ].astype(numpy.float32)
         points = numpy.stack((r, g, b), axis=-1).reshape(shape)
         points = _sample_lut_linear_numpy(source, points)
@@ -324,9 +349,9 @@ def transform_lut(source, lut, target_size=None, interp=Image.BILINEAR,
         shape = (size1D * size2D * size3D, source.channels)
         if target_size:
             b, g, r = numpy.mgrid[
-                0 : 1 : size3D*1j,
-                0 : 1 : size2D*1j,
-                0 : 1 : size1D*1j
+                0:1:size3D*1j,
+                0:1:size2D*1j,
+                0:1:size1D*1j
             ].astype(numpy.float32)
             points = numpy.stack((r, g, b), axis=-1).reshape(shape)
             points = _sample_lut_linear_numpy(source, points)
@@ -372,9 +397,9 @@ def amplify_lut(source, scale):
     if numpy:
         size1D, size2D, size3D = source.size
         sb, sg, sr = numpy.mgrid[
-            0 : 1 : size3D*1j,
-            0 : 1 : size2D*1j,
-            0 : 1 : size1D*1j
+            0:1:size3D*1j,
+            0:1:size2D*1j,
+            0:1:size1D*1j
         ].astype(numpy.float32).reshape(3, size1D * size2D * size3D)
 
         points = numpy.array(source.table, dtype=numpy.float32)
@@ -384,7 +409,7 @@ def amplify_lut(source, scale):
         points[:, 2] = sb + (points[:, 2] - sb) * scale[2]
 
         return type(source)(
-            source.size, points.reshape(points.size),channels=source.channels,
+            source.size, points.reshape(points.size), channels=source.channels,
             target_mode=source.mode, _copy_table=False,
         )
 

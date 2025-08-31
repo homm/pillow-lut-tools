@@ -55,7 +55,7 @@ class TestLoadCubeFile(PillowTestCase):
 
     def test_errors(self):
         with self.assertRaisesRegex(ValueError, "No size found"):
-            lut = load_cube_file([
+            load_cube_file([
                 'TITLE "LUT name from file"',
             ] + [
                 "0    0 0.031",
@@ -63,7 +63,7 @@ class TestLoadCubeFile(PillowTestCase):
             ] * 3)
 
         with self.assertRaisesRegex(ValueError, "number of colors on line 3"):
-            lut = load_cube_file([
+            load_cube_file([
                 'LUT_3D_SIZE 2',
             ] + [
                 "0    0 0.031",
@@ -71,7 +71,7 @@ class TestLoadCubeFile(PillowTestCase):
             ] * 3)
 
         with self.assertRaisesRegex(ValueError, "1D LUT cube files"):
-            lut = load_cube_file([
+            load_cube_file([
                 'LUT_1D_SIZE 2',
             ] + [
                 "0    0 0.031",
@@ -79,7 +79,7 @@ class TestLoadCubeFile(PillowTestCase):
             ])
 
         with self.assertRaisesRegex(ValueError, "Not a number on line 2"):
-            lut = load_cube_file([
+            load_cube_file([
                 'LUT_3D_SIZE 2',
             ] + [
                 "0  green 0.031",

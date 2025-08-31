@@ -41,28 +41,29 @@ class TestSampleLutLinear(PillowTestCase):
                         self.assertAlmostEqual(left, right)
 
     def test_interpolation(self):
-        lut = ImageFilter.Color3DLUT.generate(3, lambda r, g, b:
-            (r, g*g, b*b + r))
+        lut = ImageFilter.Color3DLUT.generate(
+            3, lambda r, g, b: (r, g*g, b*b + r))
         for point, res in [
-            (( 0, 0, 0), ( 0, 0,  0)),
+            ((0, 0, 0), (0, 0, 0)),
             ((.3, 0, 0), (.3, 0, .3)),
             ((.6, 0, 0), (.6, 0, .6)),
-            (( 1, 0, 0), ( 1, 0,  1)),
-            ((0,  0, 0), (0,  0, 0)),
-            ((0, .3, 0), (0,.15, 0)),
+            ((1, 0, 0), (1, 0, 1)),
+            ((0, 0, 0), (0, 0, 0)),
+            ((0, .3, 0), (0, .15, 0)),
             ((0, .6, 0), (0, .4, 0)),
-            ((0,  1, 0), (0,  1, 0)),
-            ((0, 0,  0), (0, 0,  0)),
-            ((0, 0, .3), (0, 0,.15)),
+            ((0, 1, 0), (0, 1, 0)),
+            ((0, 0, 0), (0, 0, 0)),
+            ((0, 0, .3), (0, 0, .15)),
             ((0, 0, .6), (0, 0, .4)),
-            ((0, 0,  1), (0, 0,  1)),
-            (( 0,  0,  0), ( 0,  0,  0)),
-            ((.3, .3, .3), (.3,.15,.45)),
-            ((.6, .6, .6), (.6, .4,  1)),
-            (( 1,  1,  1), ( 1,  1,  2)),
+            ((0, 0, 1), (0, 0, 1)),
+            ((0, 0, 0), (0, 0, 0)),
+            ((.3, .3, .3), (.3, .15, .45)),
+            ((.6, .6, .6), (.6, .4, 1)),
+            ((1, 1, 1), (1, 1, 2)),
         ]:
-            for l, r in zip(sample_lut_linear(lut, point), res):
-                self.assertAlmostEqual(l, r)
+            for lutval, resval in zip(sample_lut_linear(lut, point), res):
+                self.assertAlmostEqual(lutval, resval)
+
 
 class TestSampleLutCubic(PillowTestCase):
     def test_identity_2(self):
@@ -101,46 +102,45 @@ class TestSampleLutCubic(PillowTestCase):
                         self.assertAlmostEqual(left, right)
 
     def test_interpolation(self):
-        lut = ImageFilter.Color3DLUT.generate(5, lambda r, g, b:
-            (r, g*g, b*b + r))
+        lut = ImageFilter.Color3DLUT.generate(
+            5, lambda r, g, b: (r, g*g, b*b + r))
         for point, res in [
-            (( 0, 0, 0), ( 0, 0,  0)),
+            ((0, 0, 0), (0, 0, 0)),
             ((.3, 0, 0), (.3, 0, .3)),
             ((.6, 0, 0), (.6, 0, .6)),
-            (( 1, 0, 0), ( 1, 0,  1)),
-            ((0,  0, 0), (0,  0, 0)),
-            ((0, .3, 0), (0,.09, 0)),
-            ((0, .6, 0), (0,.36, 0)),
-            ((0,  1, 0), (0,  1, 0)),
-            ((0, 0,  0), (0, 0,  0)),
-            ((0, 0, .3), (0, 0,.09)),
-            ((0, 0, .6), (0, 0,.36)),
-            ((0, 0,  1), (0, 0,  1)),
-            (( 0,  0,  0), ( 0,  0,  0)),
-            ((.3, .3, .3), (.3,.09,.39)),
-            ((.6, .6, .6), (.6,.36,.96)),
-            (( 1,  1,  1), ( 1,  1,  2)),
+            ((1, 0, 0), (1, 0, 1)),
+            ((0, 0, 0), (0, 0, 0)),
+            ((0, .3, 0), (0, .09, 0)),
+            ((0, .6, 0), (0, .36, 0)),
+            ((0, 1, 0), (0, 1, 0)),
+            ((0, 0, 0), (0, 0, 0)),
+            ((0, 0, .3), (0, 0, .09)),
+            ((0, 0, .6), (0, 0, .36)),
+            ((0, 0, 1), (0, 0, 1)),
+            ((0, 0, 0), (0, 0, 0)),
+            ((.3, .3, .3), (.3, .09, .39)),
+            ((.6, .6, .6), (.6, .36, .96)),
+            ((1, 1, 1), (1, 1, 2)),
         ]:
-            for l, r in zip(sample_lut_cubic(lut, point), res):
-                self.assertAlmostEqual(l, r)
+            for lutval, resval in zip(sample_lut_cubic(lut, point), res):
+                self.assertAlmostEqual(lutval, resval)
 
 
 class TestResizeLut(PillowTestCase):
     identity7 = identity_table(7)
     identity9 = identity_table(9)
-    lut7_in = ImageFilter.Color3DLUT.generate(7,
-            lambda r, g, b: (r**1.2, g**1.2, b**1.2))
-    lut7_out = ImageFilter.Color3DLUT.generate(7,
-        lambda r, g, b: (r**(1/1.2), g**(1/1.2), b**(1/1.2)))
-    lut9_in = ImageFilter.Color3DLUT.generate(9,
-        lambda r, g, b: (r**1.2, g**1.2, b**1.2))
-    lut5_4c = ImageFilter.Color3DLUT.generate(5, channels=4,
-        callback=lambda r, g, b: (r*r, g*g, b*b, 1.0))
+    lut7_in = ImageFilter.Color3DLUT.generate(
+        7, lambda r, g, b: (r**1.2, g**1.2, b**1.2))
+    lut7_out = ImageFilter.Color3DLUT.generate(
+        7, lambda r, g, b: (r**(1/1.2), g**(1/1.2), b**(1/1.2)))
+    lut9_in = ImageFilter.Color3DLUT.generate(
+        9, lambda r, g, b: (r**1.2, g**1.2, b**1.2))
+    lut5_4c = ImageFilter.Color3DLUT.generate(
+        5, channels=4, callback=lambda r, g, b: (r*r, g*g, b*b, 1.0))
 
     def test_wrong_args(self):
         with self.assertRaisesRegex(ValueError, "interpolations"):
-            result = resize_lut(identity_table(4), 5,
-                interp=Image.NEAREST)
+            resize_lut(identity_table(4), 5, interp=Image.NEAREST)
 
     def test_correct_args(self):
         result = resize_lut(identity_table((3, 4, 5), target_mode='RGB'),
@@ -173,10 +173,10 @@ class TestResizeLut(PillowTestCase):
         self.assertAlmostEqualLuts(result, self.lut7_in, 7)
 
     def test_fallback_to_linear(self):
-        lut3 = ImageFilter.Color3DLUT.generate((5, 5, 3),
-            lambda r, g, b: (r**1.5, g**1.5, b**1.5))
-        lut4 = ImageFilter.Color3DLUT.generate((5, 5, 4),
-            lambda r, g, b: (r**1.5, g**1.5, b**1.5))
+        lut3 = ImageFilter.Color3DLUT.generate(
+            (5, 5, 3), lambda r, g, b: (r**1.5, g**1.5, b**1.5))
+        lut4 = ImageFilter.Color3DLUT.generate(
+            (5, 5, 4), lambda r, g, b: (r**1.5, g**1.5, b**1.5))
 
         with warnings.catch_warnings(record=True) as w:
             cubic = resize_lut(lut4, (5, 5, 3), interp=Image.BICUBIC)
@@ -221,26 +221,24 @@ class TestResizeLut(PillowTestCase):
 class TestTransformLut(PillowTestCase):
     identity7 = identity_table(7)
     identity9 = identity_table(9)
-    lut7_in = ImageFilter.Color3DLUT.generate(7,
-            lambda r, g, b: (r**1.2, g**1.2, b**1.2))
-    lut7_out = ImageFilter.Color3DLUT.generate(7,
-        lambda r, g, b: (r**(1/1.2), g**(1/1.2), b**(1/1.2)))
-    lut9_in = ImageFilter.Color3DLUT.generate(9,
-        lambda r, g, b: (r**1.2, g**1.2, b**1.2))
-    lut5_4c = ImageFilter.Color3DLUT.generate(5, channels=4,
-        callback=lambda r, g, b: (r*r, g*g, b*b, 1.0))
+    lut7_in = ImageFilter.Color3DLUT.generate(
+        7, lambda r, g, b: (r**1.2, g**1.2, b**1.2))
+    lut7_out = ImageFilter.Color3DLUT.generate(
+        7, lambda r, g, b: (r**(1/1.2), g**(1/1.2), b**(1/1.2)))
+    lut9_in = ImageFilter.Color3DLUT.generate(
+        9, lambda r, g, b: (r**1.2, g**1.2, b**1.2))
+    lut5_4c = ImageFilter.Color3DLUT.generate(
+        5, channels=4, callback=lambda r, g, b: (r*r, g*g, b*b, 1.0))
 
     def test_wrong_args(self):
         with self.assertRaisesRegex(ValueError, "only 3-channel cubes"):
-            result = transform_lut(self.lut5_4c, identity_table(3))
+            transform_lut(self.lut5_4c, identity_table(3))
 
         with self.assertRaisesRegex(ValueError, "only 3-channel cubes"):
-            result = transform_lut(self.lut5_4c, identity_table(3),
-                                   target_size=5)
+            transform_lut(self.lut5_4c, identity_table(3), target_size=5)
 
         with self.assertRaisesRegex(ValueError, "interpolations"):
-            result = transform_lut(identity_table(4), identity_table(4),
-                interp=Image.NEAREST)
+            transform_lut(identity_table(4), identity_table(4), interp=Image.NEAREST)
 
     def test_correct_args(self):
         result = transform_lut(identity_table((3, 4, 5), target_mode='RGB'),
@@ -332,14 +330,13 @@ class TestTransformLut(PillowTestCase):
         self.assertAlmostEqualLuts(result, self.identity9, 4)
 
     def test_fallback_to_linear(self):
-        lut3 = ImageFilter.Color3DLUT.generate((5, 5, 3),
-            lambda r, g, b: (r**1.5, g**1.5, b**1.5))
-        lut4 = ImageFilter.Color3DLUT.generate((5, 5, 4),
-            lambda r, g, b: (r**1.5, g**1.5, b**1.5))
+        lut3 = ImageFilter.Color3DLUT.generate(
+            (5, 5, 3), lambda r, g, b: (r**1.5, g**1.5, b**1.5))
+        lut4 = ImageFilter.Color3DLUT.generate(
+            (5, 5, 4), lambda r, g, b: (r**1.5, g**1.5, b**1.5))
 
         with warnings.catch_warnings(record=True) as w:
-            cubic = transform_lut(identity_table((5, 5, 3)), lut4,
-                                  interp=Image.BICUBIC)
+            cubic = transform_lut(identity_table((5, 5, 3)), lut4, interp=Image.BICUBIC)
             self.assertEqual(len(w), 0)
         linear = transform_lut(identity_table((5, 5, 3)), lut4)
         self.assertNotEqualLutTables(cubic, linear)
@@ -389,8 +386,8 @@ class TestTransformLut(PillowTestCase):
 
 
 class TestAmplifyLut(PillowTestCase):
-    lut5_4c = ImageFilter.Color3DLUT.generate(5, channels=4,
-        callback=lambda r, g, b: (r*r, g*g, b*b, 1.0))
+    lut5_4c = ImageFilter.Color3DLUT.generate(
+        5, channels=4, callback=lambda r, g, b: (r*r, g*g, b*b, 1.0))
 
     def test_correct_args(self):
         result = amplify_lut(identity_table((3, 4, 5)), -1)
@@ -402,12 +399,12 @@ class TestAmplifyLut(PillowTestCase):
         self.assertEqual(result.channels, 4)
 
     def test_correctness(self):
-        lut = ImageFilter.Color3DLUT.generate(5,
-            callback=lambda r, g, b: (r+0.1, g*1.1, b-0.1))
-        lut_05x = ImageFilter.Color3DLUT.generate(5,
-            callback=lambda r, g, b: (r+0.05, g*1.05, b-0.05))
-        lut_2x = ImageFilter.Color3DLUT.generate(5,
-            callback=lambda r, g, b: (r+0.2, g*1.2, b-0.2))
+        lut = ImageFilter.Color3DLUT.generate(
+            5, callback=lambda r, g, b: (r+0.1, g*1.1, b-0.1))
+        lut_05x = ImageFilter.Color3DLUT.generate(
+            5, callback=lambda r, g, b: (r+0.05, g*1.05, b-0.05))
+        lut_2x = ImageFilter.Color3DLUT.generate(
+            5, callback=lambda r, g, b: (r+0.2, g*1.2, b-0.2))
         identity = identity_table(5)
 
         res_numpy = amplify_lut(lut, 1.0)
@@ -435,10 +432,10 @@ class TestAmplifyLut(PillowTestCase):
         self.assertAlmostEqualLuts(res_native, res_numpy)
 
     def test_correctness_4c(self):
-        lut = ImageFilter.Color3DLUT.generate(5, channels=4,
-            callback=lambda r, g, b: (r+0.1, g*1.1, b-0.1, r+g+b))
-        lut_2x = ImageFilter.Color3DLUT.generate(5, channels=4,
-            callback=lambda r, g, b: (r+0.2, g*1.2, b-0.2, r+g+b))
+        lut = ImageFilter.Color3DLUT.generate(
+            5, channels=4, callback=lambda r, g, b: (r+0.1, g*1.1, b-0.1, r+g+b))
+        lut_2x = ImageFilter.Color3DLUT.generate(
+            5, channels=4, callback=lambda r, g, b: (r+0.2, g*1.2, b-0.2, r+g+b))
 
         res_numpy = amplify_lut(lut, 2)
         with disable_numpy(operations):

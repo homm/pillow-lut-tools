@@ -2,8 +2,6 @@ from itertools import chain
 
 from PIL import Image, ImageFilter, ImageMath
 
-from .utils import isPath
-
 
 try:
     import numpy
@@ -24,7 +22,7 @@ def load_cube_file(lines, target_mode=None, cls=ImageFilter.Color3DLUT):
     channels = 3
     file = None
 
-    if isPath(lines):
+    if isinstance(lines, str):
         file = lines = open(lines, 'rt')
 
     try:

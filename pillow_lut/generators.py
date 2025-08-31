@@ -15,10 +15,10 @@ def _srgb_to_linear(s):
     return pow((s + 0.055) / 1.055, 2.4)
 
 
-def _linear_to_srgb(l):
-    if l < 0.00313066844250063:
-        return l * 12.92
-    return pow(l, 1 / 2.4) * 1.055 - 0.055
+def _linear_to_srgb(lin):
+    if lin < 0.00313066844250063:
+        return lin * 12.92
+    return pow(lin, 1 / 2.4) * 1.055 - 0.055
 
 
 def _srgb_to_linear_numpy(s):
@@ -26,9 +26,9 @@ def _srgb_to_linear_numpy(s):
     return numpy.select([s < 0.0404482362771082, True], choicelist)
 
 
-def _linear_to_srgb_numpy(l):
-    choicelist = [l * 12.92, (l ** (1 / 2.4)) * 1.055 - 0.055]
-    return numpy.select([l < 0.00313066844250063, True], choicelist)
+def _linear_to_srgb_numpy(lin):
+    choicelist = [lin * 12.92, (lin ** (1 / 2.4)) * 1.055 - 0.055]
+    return numpy.select([lin < 0.00313066844250063, True], choicelist)
 
 
 def _rgb_to_hsv(r, g, b):
@@ -54,11 +54,16 @@ def _hsv_to_rgb(h, s, v):
     p = v * (1 - s)
     q = v * (1 - f * s)
     t = v * (1 - (1 - f) * s)
-    if i == 0: return v, t, p
-    if i == 1: return q, v, p
-    if i == 2: return p, v, t
-    if i == 3: return p, q, v
-    if i == 4: return t, p, v
+    if i == 0:
+        return v, t, p
+    if i == 1:
+        return q, v, p
+    if i == 2:
+        return p, v, t
+    if i == 3:
+        return p, q, v
+    if i == 4:
+        return t, p, v
     return v, p, q  # if i == 5:
 
 
@@ -181,9 +186,9 @@ def rgb_color_enhance(source,
         else:
             size = cls._check_size(source)
             b, g, r = numpy.mgrid[
-                0 : 1 : size[2]*1j,
-                0 : 1 : size[1]*1j,
-                0 : 1 : size[0]*1j
+                0:1:size[2]*1j,
+                0:1:size[1]*1j,
+                0:1:size[0]*1j
             ].astype(numpy.float32)
 
         if linear:
@@ -315,9 +320,9 @@ def identity_table(size, target_mode=None, cls=ImageFilter.Color3DLUT):
     if numpy:
         size = cls._check_size(size)
         b, g, r = numpy.mgrid[
-            0 : 1 : size[2]*1j,
-            0 : 1 : size[1]*1j,
-            0 : 1 : size[0]*1j
+            0:1:size[2]*1j,
+            0:1:size[1]*1j,
+            0:1:size[0]*1j
         ].astype(numpy.float32)
 
         table = numpy.stack((r, g, b), axis=-1)
