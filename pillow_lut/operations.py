@@ -109,7 +109,7 @@ def _sample_lut_linear_numpy(lut, points):
     s12D = s1D * s2D
 
     idx, shift1D, shift2D, shift3D = _points_shift_numpy(lut.size, points, 0, 1)
-    table = numpy.array(lut.table, copy=False, dtype=numpy.float32)
+    table = numpy.asarray(lut.table, dtype=numpy.float32)
     table = table.reshape(s1D * s2D * s3D, lut.channels)
 
     return _inter_linear(
@@ -356,7 +356,7 @@ def transform_lut(source, lut, target_size=None, interp=Image.BILINEAR,
             points = numpy.stack((r, g, b), axis=-1).reshape(shape)
             points = _sample_lut_linear_numpy(source, points)
         else:
-            points = numpy.array(source.table, copy=False, dtype=numpy.float32)
+            points = numpy.asarray(source.table, dtype=numpy.float32)
             points = points.reshape(shape)
 
         points = _sample_lut_linear_numpy(lut, points)

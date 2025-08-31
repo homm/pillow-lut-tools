@@ -90,3 +90,6 @@ class PillowTestCase(unittest.TestCase):
         right = numpy.array(right.table, dtype=numpy.float64)
         if numpy.array_equal(left, right):
             raise self.failureException(msg or 'Tables are equal')
+
+    def assertAlmostEqual(self, first, second, places=6, *args, **kwargs):
+        return super().assertAlmostEqual(first, second, places, *args, **kwargs)

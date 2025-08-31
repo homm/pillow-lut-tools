@@ -179,7 +179,7 @@ def rgb_color_enhance(source,
     if numpy and not hue:
         if source_is_lut:
             size = source.size
-            points = numpy.array(source.table, copy=False, dtype=numpy.float32)
+            points = numpy.asarray(source.table, dtype=numpy.float32)
             r = points[0::3]
             g = points[1::3]
             b = points[2::3]
