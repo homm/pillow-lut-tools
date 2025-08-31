@@ -1,4 +1,5 @@
-pytest==8.4.1
-pytest-cov==6.2.1
-flake8==7.3.0
-isort==6.0.1
+# Don't fix versions to allow wide range of python versions
+pytest
+pytest-cov
+flake8
+isort
