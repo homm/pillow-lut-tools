@@ -1,0 +1,39 @@
+name: Check
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        ver:
+          - { python: "3.7", pillow: "5.2.0", numpy: "1.14.6" }
+          - { python: "3.9", pillow: "8.0.1", numpy: "1.19.5" }
+          - { python: "3.9", pillow: "9.5.0", numpy: "1.26.4" }
+          - { python: "3.9", pillow: "11.3.0", numpy: "2.0.2" }
+          - { python: "3.12", pillow: "11.3.0", numpy: "1.26.4" }
+          - { python: "3.12", pillow: "10.0.1", numpy: "2.3.2" }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.ver.python }}
+
+      - name: Install dependencies
+        run: |
+          if [ -n "${{ matrix.ver.numpy }}" ]; then pip install "numpy==${{ matrix.ver.numpy }}"; fi
+          pip install pillow==${{ matrix.ver.pillow }} -r ./requirements_dev.txt
+          pip install .
+
+      - name: Check
+        run: pytest
