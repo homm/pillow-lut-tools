@@ -30,17 +30,17 @@ def load_cube_file(lines, target_mode=None, cls=ImageFilter.Color3DLUT):
 
         for i, line in enumerate(iterator, 1):
             line = line.strip()
-            if line.startswith('TITLE "'):
+            if line.startswith('TITLE'):
                 name = line.split('"')[1]
                 continue
-            if line.startswith('LUT_3D_SIZE '):
+            if line.startswith('LUT_3D_SIZE'):
                 size = [int(x) for x in line.split()[1:]]
                 if len(size) == 1:
                     size = size[0]
                 continue
-            if line.startswith('CHANNELS '):
+            if line.startswith('CHANNELS'):
                 channels = int(line.split()[1])
-            if line.startswith('LUT_1D_SIZE '):
+            if line.startswith('LUT_1D_SIZE'):
                 raise ValueError("1D LUT cube files aren't supported")
 
             try:

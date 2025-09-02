@@ -33,7 +33,7 @@ class TestLoadCubeFile(PillowTestCase):
     def test_parser(self):
         lut = load_cube_file([
             " # Comment",
-            'TITLE "LUT name from file"',
+            'TITLE  "LUT name from file"',
             "  LUT_3D_SIZE 2 3 4",
             " SKIP THIS",
             "",
@@ -93,7 +93,7 @@ class TestLoadCubeFile(PillowTestCase):
     def test_filename(self):
         with NamedTemporaryFile('w+t', delete=False) as f:
             f.write(
-                "LUT_3D_SIZE 2\n"
+                "LUT_3D_SIZE\t2\n"
                 "0    0 0.031\n"
                 "0.96 0 0.031\n"
                 "0    1 0.031\n"
