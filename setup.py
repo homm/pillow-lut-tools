@@ -5,9 +5,9 @@ from setuptools import setup
 
 setup(
     name='pillow_lut',
-    version='1.0.1',
-    description='Lookup tables loading, manipulation and generation '
-                'for Pillow library',
+    version='1.1.0',
+    description=(
+        'Lookup tables loading, manipulation and generation for Pillow library'),
     author='Aleksandr Karpinskii',
     author_email='homm86@gmail.com',
     url='https://github.com/homm/pillow-lut-tools',
