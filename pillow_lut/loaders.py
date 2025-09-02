@@ -1,9 +1,7 @@
-from __future__ import division, unicode_literals, absolute_import
-
 from itertools import chain
 
-from . import Image, ImageFilter, ImageMath
-from .utils import isPath
+from PIL import Image, ImageFilter, ImageMath
+
 
 try:
     import numpy
@@ -24,7 +22,7 @@ def load_cube_file(lines, target_mode=None, cls=ImageFilter.Color3DLUT):
     channels = 3
     file = None
 
-    if isPath(lines):
+    if isinstance(lines, str):
         file = lines = open(lines, 'rt')
 
     try:
@@ -32,17 +30,17 @@ def load_cube_file(lines, target_mode=None, cls=ImageFilter.Color3DLUT):
 
         for i, line in enumerate(iterator, 1):
             line = line.strip()
-            if line.startswith('TITLE "'):
+            if line.startswith('TITLE'):
                 name = line.split('"')[1]
                 continue
-            if line.startswith('LUT_3D_SIZE '):
+            if line.startswith('LUT_3D_SIZE'):
                 size = [int(x) for x in line.split()[1:]]
                 if len(size) == 1:
                     size = size[0]
                 continue
-            if line.startswith('CHANNELS '):
+            if line.startswith('CHANNELS'):
                 channels = int(line.split()[1])
-            if line.startswith('LUT_1D_SIZE '):
+            if line.startswith('LUT_1D_SIZE'):
                 raise ValueError("1D LUT cube files aren't supported")
 
             try:
