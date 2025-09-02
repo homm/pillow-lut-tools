@@ -1,5 +1,3 @@
-import unittest
-import warnings
 from contextlib import contextmanager
 from os.path import abspath, dirname, join
 
@@ -20,35 +18,13 @@ def disable_numpy(module):
 
 
 def resource(*x):
-    return abspath(join(abspath(dirname(__file__)), *x))
+    return abspath(join(dirname(__file__), *x))
 
 
-class PillowTestCase(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls._catch_warnings = warnings.catch_warnings(record=True)
-        cls._catch_warnings.__enter__()
-        warnings.simplefilter('always')
-        super(PillowTestCase, cls).setUpClass()
-
-    @classmethod
-    def tearDownClass(cls):
-        super(PillowTestCase, cls).tearDownClass()
-        cls._catch_warnings.__exit__()
-
-    def assertImageEqual(self, a, b, msg=None):
-        self.assertEqual(
-            a.mode, b.mode,
-            msg or "got mode %r, expected %r" % (a.mode, b.mode))
-        self.assertEqual(
-            a.size, b.size,
-            msg or "got size %r, expected %r" % (a.size, b.size))
-        if a.tobytes() != b.tobytes():
-            self.fail(msg or "got different content")
-
-    def assertAlmostEqualLuts(self, left, right, diff=None, msg=None):
-        self.assertEqual(tuple(left.size), tuple(right.size))
-        self.assertEqual(left.channels, right.channels)
+class PillowTestCase:
+    def assertAlmostEqualLuts(self, left, right, diff=None):
+        assert tuple(left.size) == tuple(right.size)
+        assert left.channels == right.channels
         left = numpy.array(left.table, dtype=numpy.float64)
         right = numpy.array(right.table, dtype=numpy.float64)
 
@@ -61,35 +37,29 @@ class PillowTestCase(unittest.TestCase):
         if diffs.max() <= diff:
             return
 
-        if not msg:
-            idx = diffs.argmax()
-            msg = '{} != {} within {} diff'.format(left[idx], right[idx], diff)
-        raise self.failureException(msg)
+        idx = diffs.argmax()
+        msg = f'{left[idx]} != {right[idx]} within {diff} diff'
+        raise AssertionError(msg)
 
-    def assertEqualLuts(self, left, right, msg=None):
-        self.assertEqual(tuple(left.size), tuple(right.size))
-        self.assertEqual(left.channels, right.channels)
+    def assertEqualLuts(self, left, right):
+        assert tuple(left.size) == tuple(right.size)
+        assert left.channels == right.channels
 
         left = numpy.array(left.table, dtype=numpy.float64)
         right = numpy.array(right.table, dtype=numpy.float64)
         if numpy.array_equal(left, right):
             return
 
-        if not msg:
-            msg = ['Tables are not equal. Different elements:']
-            for idx in (left - right).nonzero()[0][:20]:
-                msg.append("  {}: {}, {}".format(idx, left[idx], right[idx]))
-            msg = "\n".join(msg)
-        raise self.failureException(msg)
+        lines = ['Tables are not equal. Different elements:']
+        for idx in (left - right).nonzero()[0][:20]:
+            lines.append(f"  {idx}: {left[idx]}, {right[idx]}")
+        raise AssertionError("\n".join(lines))
 
-    def assertNotEqualLutTables(self, left, right, msg=None):
-        self.assertEqual(tuple(left.size), tuple(right.size))
-        self.assertEqual(left.channels, right.channels)
+    def assertNotEqualLutTables(self, left, right):
+        assert tuple(left.size) == tuple(right.size)
+        assert left.channels == right.channels
 
         left = numpy.array(left.table, dtype=numpy.float64)
         right = numpy.array(right.table, dtype=numpy.float64)
         if numpy.array_equal(left, right):
-            raise self.failureException(msg or 'Tables are equal')
-
-    def assertAlmostEqual(self, first, second, places=6, *args, **kwargs):
-        return super().assertAlmostEqual(first, second, places, *args, **kwargs)
+            raise AssertionError('Tables are equal')
